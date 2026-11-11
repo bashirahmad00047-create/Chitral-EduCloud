@@ -414,3 +414,16 @@ function printIdCard() {
   }, 1000);
 }
 
+// Global window bindings
+window.renderStudentsTable = renderStudentsTable;
+window.filterStudents = filterStudents;
+window.exportStudentsCsv = exportStudentsCsv;
+window.openAddStudentModal = openAddStudentModal;
+window.closeAddStudentModal = closeAddStudentModal;
+window.handleAddNewStudent = handleAddNewStudent;
+window.renderStudentProfile = renderStudentProfile;
+window.selectStudentProfile = selectStudentProfile;
+window.renderIdCardScreen = renderIdCardScreen;
+window.printIdCard = printIdCard;
+
+

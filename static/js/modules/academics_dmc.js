@@ -319,3 +319,18 @@ function printDmcReport() {
   }, 1000);
 }
 
+// Global window bindings
+window.renderTeacherWorkspace = renderTeacherWorkspace;
+window.renderAttendanceSheet = renderAttendanceSheet;
+window.setStudentAttendance = setStudentAttendance;
+window.markAllAttendance = markAllAttendance;
+window.saveAttendanceRegister = saveAttendanceRegister;
+window.exportAttendanceCsv = exportAttendanceCsv;
+window.renderExamMarksGrid = renderExamMarksGrid;
+window.saveExamMarks = saveExamMarks;
+window.exportExamsCsv = exportExamsCsv;
+window.renderDmcScreen = renderDmcScreen;
+window.printDmcReport = printDmcReport;
+window.sendWhatsAppAbsenceAlert = sendWhatsAppAbsenceAlert;
+
+

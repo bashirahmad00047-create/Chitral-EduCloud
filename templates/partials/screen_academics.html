@@ -65,12 +65,15 @@
             <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white" data-i18n="attendanceSheetTitle">Daily Class Attendance Register</h2>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="attendanceSubtitle">One-click interactive attendance tracking with instant SMS alerts.</p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <button onclick="exportAttendanceCsv()" class="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center gap-1.5 shadow-xs">
               <i class="fa-solid fa-file-excel text-emerald-600"></i> Export Register CSV
             </button>
-            <button onclick="markAllAttendance('Present')" class="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 transition flex items-center gap-1.5">
+            <button onclick="markAllAttendance('Present')" class="px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 transition flex items-center gap-1.5">
               <i class="fa-solid fa-check-double"></i> <span data-i18n="markAllPresent">Mark All Present</span>
+            </button>
+            <button onclick="markAllAttendance('Absent')" class="px-3 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-300 text-xs font-bold hover:bg-rose-100 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-user-xmark"></i> <span>Mark All Absent</span>
             </button>
             <button onclick="saveAttendanceRegister()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-sm">
               <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="btnSaveAttendance">Save Attendance</span>

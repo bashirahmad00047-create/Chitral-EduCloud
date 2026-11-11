@@ -245,13 +245,6 @@ async function handleCreateSchool(e) {
     showToast("Network error creating school campus");
   }
 }
-    } else {
-      showToast(data.error || "Failed to onboard school campus");
-    }
-  } catch (err) {
-    showToast("Network error creating school campus");
-  }
-}
 
 async function switchSchool(schoolId) {
   state.currentSchoolId = schoolId;
@@ -447,12 +440,36 @@ async function handleUserLogout() {
   showToast("Logged out of Chitral EduCloud ERP");
 }
 
-// ==================== NAVIGATION ROUTER ====================
+// ==================== NAVIGATION ROUTER & COMMAND PALETTE ====================
 function initNavigation() {
   const sidebarBtn = document.getElementById('sidebarToggleBtn');
   if (sidebarBtn) {
     sidebarBtn.addEventListener('click', toggleMobileSidebar);
   }
+
+  // Safe dynamic listener binding for all nav buttons
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const scr = btn.getAttribute('data-screen');
+      if (scr) {
+        navigateTo(scr);
+      }
+    });
+  });
+
+  // Global Keyboard Shortcuts (Ctrl + K / Cmd + K for Command Palette, Esc to close)
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      openCommandPalette();
+    } else if (e.key === 'Escape') {
+      closeCommandPalette();
+      closeAddSchoolModal();
+      if (typeof closeAddStudentModal === 'function') closeAddStudentModal();
+      if (typeof closeWhatsAppQrModal === 'function') closeWhatsAppQrModal();
+      if (typeof closeBankChallanModal === 'function') closeBankChallanModal();
+    }
+  });
 }
 
 function toggleMobileSidebar() {
@@ -463,36 +480,40 @@ function toggleMobileSidebar() {
 }
 
 function navigateTo(screenId) {
+  if (!screenId) return;
   state.currentScreen = screenId;
 
-  // Hide all screens
+  // 1. Hide all screens
   document.querySelectorAll('.screen-view').forEach(el => {
     el.classList.add('hidden');
   });
 
-  // Show target screen
+  // 2. Show target screen
   const target = document.getElementById(screenId);
   if (target) {
     target.classList.remove('hidden');
+  } else {
+    console.warn(`Screen element with id #${screenId} not found`);
   }
 
-  // Update active sidebar nav button
+  // 3. Update active sidebar nav button styling with Ultra-Premium SaaS Active Class
   document.querySelectorAll('.nav-item').forEach(btn => {
     if (btn.getAttribute('data-screen') === screenId) {
-      btn.classList.add('bg-emerald-50', 'dark:bg-slate-700', 'text-emerald-700', 'dark:text-emerald-400');
+      btn.classList.add('nav-item-active', 'bg-emerald-50', 'dark:bg-slate-700', 'text-emerald-700', 'dark:text-emerald-400');
     } else {
-      btn.classList.remove('bg-emerald-50', 'dark:bg-slate-700', 'text-emerald-700', 'dark:text-emerald-400');
+      btn.classList.remove('nav-item-active', 'bg-emerald-50', 'dark:bg-slate-700', 'text-emerald-700', 'dark:text-emerald-400');
     }
   });
 
-  // Close mobile sidebar if open
+  // 4. Close mobile sidebar if open
   const sidebar = document.getElementById('sidebar');
   const backdrop = document.getElementById('sidebarBackdrop');
   if (sidebar && !sidebar.classList.contains('-translate-x-full') && window.innerWidth < 1024) {
     sidebar.classList.add('-translate-x-full');
-    backdrop.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
   }
 
+  // 5. Render active screen content safely
   renderScreen(screenId);
   applyTranslations();
 
@@ -501,46 +522,176 @@ function navigateTo(screenId) {
 }
 
 function renderScreen(screenId) {
-  switch (screenId) {
-    case 'screen-dashboard':
-      renderAdminDashboard();
-      break;
-    case 'screen-students':
-      renderStudentsTable();
-      break;
-    case 'screen-profile':
-      renderStudentProfile(state.currentSelectedStudentId);
-      break;
-    case 'screen-idcard':
-      renderIdCardScreen();
-      break;
-    case 'screen-parent':
-      renderParentPortal();
-      break;
-    case 'screen-teacher':
-      renderTeacherWorkspace();
-      break;
-    case 'screen-attendance':
-      renderAttendanceSheet();
-      break;
-    case 'screen-fees':
-      renderFeeManagement();
-      break;
-    case 'screen-exams':
-      renderExamMarksGrid();
-      break;
-    case 'screen-dmc':
-      renderDmcScreen();
-      break;
-    case 'screen-alerts':
-      renderAlertsHub();
-      break;
-    case 'screen-settings':
-      updateSchoolHeaderUI();
-      break;
+  try {
+    switch (screenId) {
+      case 'screen-dashboard':
+        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+        break;
+      case 'screen-students':
+        if (typeof renderStudentsTable === 'function') renderStudentsTable();
+        break;
+      case 'screen-profile':
+        if (typeof renderStudentProfile === 'function') renderStudentProfile(state.currentSelectedStudentId);
+        break;
+      case 'screen-idcard':
+        if (typeof renderIdCardScreen === 'function') renderIdCardScreen();
+        break;
+      case 'screen-parent':
+        if (typeof renderParentPortal === 'function') renderParentPortal();
+        break;
+      case 'screen-teacher':
+        if (typeof renderTeacherWorkspace === 'function') renderTeacherWorkspace();
+        break;
+      case 'screen-attendance':
+        if (typeof renderAttendanceSheet === 'function') renderAttendanceSheet();
+        break;
+      case 'screen-fees':
+        if (typeof renderFeeManagement === 'function') renderFeeManagement();
+        break;
+      case 'screen-exams':
+        if (typeof renderExamMarksGrid === 'function') renderExamMarksGrid();
+        break;
+      case 'screen-dmc':
+        if (typeof renderDmcScreen === 'function') renderDmcScreen();
+        break;
+      case 'screen-alerts':
+        if (typeof renderAlertsHub === 'function') renderAlertsHub();
+        break;
+      case 'screen-settings':
+        if (typeof updateSchoolHeaderUI === 'function') updateSchoolHeaderUI();
+        break;
+    }
+  } catch (err) {
+    console.error(`Error rendering screen ${screenId}:`, err);
   }
 }
 
+// ==================== GLOBAL COMMAND PALETTE (Ctrl + K) ====================
+function openCommandPalette() {
+  const modal = document.getElementById('modalCommandPalette');
+  const input = document.getElementById('commandPaletteInput');
+  if (modal) {
+    modal.classList.remove('hidden');
+    if (input) {
+      input.value = '';
+      setTimeout(() => input.focus(), 50);
+      filterCommandPalette('');
+    }
+  }
+}
+
+function closeCommandPalette() {
+  const modal = document.getElementById('modalCommandPalette');
+  if (modal) modal.classList.add('hidden');
+}
+
+function filterCommandPalette(q) {
+  const container = document.getElementById('commandPaletteResults');
+  if (!container) return;
+
+  const query = (q || '').trim().toLowerCase();
+  let html = '';
+
+  // 1. Screens / Navigation Items
+  const navScreens = [
+    { id: 'screen-dashboard', name: 'Admin Dashboard', icon: 'fa-chart-pie', cat: 'Navigation' },
+    { id: 'screen-students', name: 'Student SIS & Enrollment', icon: 'fa-users', cat: 'Academics' },
+    { id: 'screen-fees', name: 'Fee Management & Quick Cashier Desk', icon: 'fa-cash-register', cat: 'Finance' },
+    { id: 'screen-attendance', name: 'Daily Attendance Sheet', icon: 'fa-calendar-check', cat: 'Academics' },
+    { id: 'screen-exams', name: 'Examination & Marks Entry', icon: 'fa-clipboard-list', cat: 'Academics' },
+    { id: 'screen-dmc', name: 'Official Printable DMC Report Card', icon: 'fa-file-invoice', cat: 'Academics' },
+    { id: 'screen-alerts', name: 'WhatsApp & SMS Hub (Baileys AI Bot)', icon: 'fa-whatsapp', cat: 'Communications' },
+    { id: 'screen-teacher', name: 'Teacher Workspace & Diary', icon: 'fa-chalkboard-user', cat: 'Portals' },
+    { id: 'screen-parent', name: 'Parent Mobile Portal', icon: 'fa-mobile-screen', cat: 'Portals' },
+    { id: 'screen-idcard', name: 'Digital PVC ID Cards', icon: 'fa-qrcode', cat: 'SIS' },
+    { id: 'screen-settings', name: 'School Campus Settings', icon: 'fa-sliders', cat: 'System' }
+  ];
+
+  const matchedScreens = navScreens.filter(s => 
+    !query || s.name.toLowerCase().includes(query) || s.cat.toLowerCase().includes(query)
+  );
+
+  // 2. Matched Students
+  const matchedStudents = (state.students || []).filter(s => 
+    !query || (s.full_name && s.full_name.toLowerCase().includes(query)) ||
+    (s.admission_no && s.admission_no.toLowerCase().includes(query)) ||
+    (s.father_name && s.father_name.toLowerCase().includes(query))
+  ).slice(0, 5);
+
+  // Render Students section
+  if (matchedStudents.length > 0) {
+    html += `<div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Students (${matchedStudents.length})</div>`;
+    matchedStudents.forEach(stu => {
+      html += `
+        <div onclick="handleCommandSelect('student', '${stu.id}')" class="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-slate-700/60 cursor-pointer transition">
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-xs font-bold">
+              ${stu.full_name.substring(0, 2).toUpperCase()}
+            </div>
+            <div>
+              <p class="text-xs font-bold text-slate-800 dark:text-slate-100">${stu.full_name} <span class="text-[10px] font-normal text-slate-400">(${stu.admission_no})</span></p>
+              <p class="text-[10px] text-slate-400">Class: ${stu.class_grade}-${stu.section} &middot; Father: ${stu.father_name || '-'}</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md">View Profile</span>
+        </div>
+      `;
+    });
+  }
+
+  // Render Navigation section
+  if (matchedScreens.length > 0) {
+    html += `<div class="px-3 py-1.5 mt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">ERP Screens (${matchedScreens.length})</div>`;
+    matchedScreens.forEach(scr => {
+      html += `
+        <div onclick="handleCommandSelect('screen', '${scr.id}')" class="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 cursor-pointer transition">
+          <div class="flex items-center gap-2.5">
+            <i class="fa-solid ${scr.icon} w-5 text-center text-emerald-600"></i>
+            <div>
+              <p class="text-xs font-semibold text-slate-800 dark:text-slate-100">${scr.name}</p>
+              <p class="text-[10px] text-slate-400">${scr.cat}</p>
+            </div>
+          </div>
+          <kbd class="text-[9px] bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-500 font-mono">Jump</kbd>
+        </div>
+      `;
+    });
+  }
+
+  // Quick Actions Section
+  if (!query || 'school new add student challan receipt'.includes(query)) {
+    html += `
+      <div class="px-3 py-1.5 mt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Quick Actions</div>
+      <div onclick="handleCommandSelect('action', 'new_school')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 cursor-pointer transition">
+        <i class="fa-solid fa-school text-emerald-600 w-5 text-center"></i>
+        <span class="text-xs font-semibold text-slate-800 dark:text-slate-100">+ Register New School Tenant</span>
+      </div>
+      <div onclick="handleCommandSelect('action', 'new_student')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 cursor-pointer transition">
+        <i class="fa-solid fa-user-plus text-teal-600 w-5 text-center"></i>
+        <span class="text-xs font-semibold text-slate-800 dark:text-slate-100">+ Register New Student</span>
+      </div>
+    `;
+  }
+
+  if (!html) {
+    html = `<div class="p-6 text-center text-xs text-slate-400">No matching students or modules found for "${q}"</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function handleCommandSelect(type, payload) {
+  closeCommandPalette();
+  if (type === 'screen') {
+    navigateTo(payload);
+  } else if (type === 'student') {
+    state.currentSelectedStudentId = payload;
+    navigateTo('screen-profile');
+  } else if (type === 'action') {
+    if (payload === 'new_school') openAddSchoolModal();
+    else if (payload === 'new_student' && typeof openAddStudentModal === 'function') openAddStudentModal();
+  }
+}
 
 // Role-Based Screen Access Control (RBAC)
 const ROLE_PERMISSIONS = {
@@ -560,3 +711,28 @@ function applyRolePermissions(role) {
     }
   });
 }
+
+// ==================== GLOBAL WINDOW BINDINGS ====================
+window.navigateTo = navigateTo;
+window.renderScreen = renderScreen;
+window.setRole = setRole;
+window.switchSchool = switchSchool;
+window.openAddSchoolModal = openAddSchoolModal;
+window.closeAddSchoolModal = closeAddSchoolModal;
+window.openCommandPalette = openCommandPalette;
+window.closeCommandPalette = closeCommandPalette;
+window.filterCommandPalette = filterCommandPalette;
+window.handleCommandSelect = handleCommandSelect;
+window.toggleLanguage = toggleLanguage;
+window.toggleTheme = toggleTheme;
+window.toggleMobileSidebar = toggleMobileSidebar;
+window.handleUserLogout = handleUserLogout;
+window.loginAsRole = loginAsRole;
+window.handleCredentialsLogin = handleCredentialsLogin;
+window.applyRolePermissions = applyRolePermissions;
+window.loadSchoolData = loadSchoolData;
+window.showToast = showToast;
+window.initNavigation = initNavigation;
+window.initTheme = initTheme;
+window.checkAuthSession = checkAuthSession;
+

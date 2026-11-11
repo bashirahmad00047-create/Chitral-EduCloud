@@ -250,8 +250,11 @@
               </div>
             </div>
 
-            <!-- ROW 5: DUAL ACTION BUTTONS -->
+            <!-- ROW 5: DUAL ACTION BUTTONS + 3-COPY BANK CHALLAN -->
             <div class="pt-2 flex flex-wrap items-center justify-end gap-2.5">
+              <button type="button" onclick="print3CopyBankChallan(document.getElementById('cashierStudentSelect')?.value || state.currentSelectedStudentId)" class="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center gap-2 shadow-xs transition" title="Print official 3-copy A4 Bank Challan (School, Bank & Student copies)">
+                <i class="fa-solid fa-file-invoice text-teal-600"></i> 3-Copy Bank Challan
+              </button>
               <button type="button" onclick="handleQuickFeePayment(false)" class="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center gap-2 shadow-xs transition">
                 <i class="fa-solid fa-check"></i> Record Only
               </button>
@@ -265,7 +268,10 @@
               <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
               <input type="text" id="feeSearchInput" oninput="filterFeeTable()" placeholder="Search Challan #, Student Name, Roll #..." class="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="sendBulkWaFeeReminders()" class="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 text-xs font-bold transition flex items-center gap-1.5 shadow-xs" title="Send WhatsApp Fee Due Alerts to all students with unpaid dues">
+                <i class="fa-brands fa-whatsapp text-emerald-600"></i> WhatsApp Due Reminders
+              </button>
               <button onclick="exportFeeLedgerCsv()" class="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 transition flex items-center gap-1.5 shadow-xs">
                 <i class="fa-solid fa-file-excel text-emerald-600"></i> Export Ledger CSV
               </button>

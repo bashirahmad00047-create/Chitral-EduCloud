@@ -249,5 +249,35 @@
     </div>
   </div>
 
+  <!-- MODAL: GLOBAL COMMAND PALETTE SPOTLIGHT (Ctrl + K) -->
+  <div id="modalCommandPalette" class="fixed inset-0 bg-slate-900/60 command-palette-backdrop z-50 hidden flex items-start justify-center pt-14 sm:pt-20 p-4" onclick="if(event.target === this) closeCommandPalette()">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col space-y-0 animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Search Input Header -->
+      <div class="flex items-center gap-3 px-4 py-3.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/80">
+        <i class="fa-solid fa-magnifying-glass text-emerald-600 text-base"></i>
+        <input id="commandPaletteInput" type="text" oninput="filterCommandPalette(this.value)" placeholder="Search students by name/roll, ERP modules, actions..." class="w-full bg-transparent text-xs sm:text-sm font-semibold outline-none text-slate-800 dark:text-white placeholder-slate-400">
+        <button onclick="closeCommandPalette()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 text-xs">
+          <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-[10px] font-mono">ESC</kbd>
+        </button>
+      </div>
+
+      <!-- Live Filtered Results Container -->
+      <div id="commandPaletteResults" class="max-h-[60vh] overflow-y-auto p-2.5 space-y-1">
+        <!-- Injected dynamically via state_router.js -->
+      </div>
+
+      <!-- Command Palette Footer -->
+      <div class="px-4 py-2 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between text-[10px] text-slate-400">
+        <div class="flex items-center gap-3">
+          <span><kbd class="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono text-[9px]">Enter</kbd> to select</span>
+          <span><kbd class="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono text-[9px]">Esc</kbd> to exit</span>
+        </div>
+        <span class="text-emerald-600 font-semibold">Chitral EduCloud Spotlight</span>
+      </div>
+
+    </div>
+  </div>
+
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toastContainer" class="fixed bottom-6 right-6 z-50 space-y-2 pointer-events-none"></div>

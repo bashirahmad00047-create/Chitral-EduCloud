@@ -531,3 +531,15 @@ async function runAiSimulatorQuery() {
     if (output) output.innerText = "Failed to connect to AI parent responder.";
   }
 }
+
+// Global window bindings
+window.renderAdminDashboard = renderAdminDashboard;
+window.initCharts = initCharts;
+window.renderAlertsHub = renderAlertsHub;
+window.sendCustomBroadcast = sendCustomBroadcast;
+window.triggerWhatsAppConnect = triggerWhatsAppConnect;
+window.closeWhatsAppQrModal = closeWhatsAppQrModal;
+window.simulateParentAiQuery = simulateParentAiQuery;
+window.saveSchoolSettings = saveSchoolSettings;
+window.downloadDatabaseBackup = downloadDatabaseBackup;
+

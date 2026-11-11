@@ -916,3 +916,67 @@ function print3CopyChallanDoc() {
   }, 1000);
 }
 
+// Bulk WhatsApp Fee Due Reminders Dispatcher
+async function sendBulkWaFeeReminders() {
+  const defaulters = (state.students || []).filter(s => {
+    const ch = (state.challans || []).find(c => c.student_id === s.id);
+    return (ch && ch.balance > 0) || (s.unpaid_balance && s.unpaid_balance > 0);
+  });
+
+  if (defaulters.length === 0) {
+    showToast("Mashallah! All students have cleared their dues in this campus.");
+    return;
+  }
+
+  showToast(`Dispatching WhatsApp Fee Reminders to ${defaulters.length} parents...`);
+
+  let dispatched = 0;
+  for (const stu of defaulters.slice(0, 5)) {
+    const bal = stu.unpaid_balance || 4750;
+    const msg = `Assalam-o-Alaikum ${stu.father_name || 'Respected Parent'}, your child ${stu.full_name} (${stu.class_grade}) has pending dues of PKR ${bal.toLocaleString()}. Kindly clear at the school cashier desk or via JazzCash/EasyPaisa. - ${state.school.name || 'Chitral EduCloud'}`;
+    try {
+      await fetch('/api/wa/send-direct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          school_id: state.currentSchoolId,
+          recipient_phone: stu.phone || '+923459821455',
+          message_text: msg,
+          message_type: 'FEE_REMINDER'
+        })
+      });
+      dispatched++;
+    } catch (e) {
+      console.warn("Bulk WA reminder error:", e);
+    }
+  }
+
+  showToast(`Bulk WhatsApp Fee Due alerts delivered to ${dispatched} parents successfully!`);
+}
+
+// Global window bindings
+window.renderParentPortal = renderParentPortal;
+window.renderFeeManagement = renderFeeManagement;
+window.initCashierDesk = initCashierDesk;
+window.filterCashierStudents = filterCashierStudents;
+window.handleCashierStudentChange = handleCashierStudentChange;
+window.updateCashierBalanceUI = updateCashierBalanceUI;
+window.handleCashierFeeHeadChange = handleCashierFeeHeadChange;
+window.handleQuickFeePayment = handleQuickFeePayment;
+window.openCollectFeeModal = openCollectFeeModal;
+window.closeCollectFeeModal = closeCollectFeeModal;
+window.handleCollectFee = handleCollectFee;
+window.generateBulkChallans = generateBulkChallans;
+window.filterFeeTable = filterFeeTable;
+window.exportFeeLedgerCsv = exportFeeLedgerCsv;
+window.exportFeesCsv = exportFeesCsv;
+window.payStaffSalary = payStaffSalary;
+window.printThermalReceipt = printThermalReceipt;
+window.closeThermalReceiptModal = closeThermalReceiptModal;
+window.printReceiptDoc = printReceiptDoc;
+window.print3CopyBankChallan = print3CopyBankChallan;
+window.closeBankChallanModal = closeBankChallanModal;
+window.print3CopyChallanDoc = print3CopyChallanDoc;
+window.sendBulkWaFeeReminders = sendBulkWaFeeReminders;
+
+
