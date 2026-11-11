@@ -41,6 +41,32 @@ def send_broadcast():
         'broadcast_id': log_id
     })
 
+# School Tenant Endpoints (Unlimited Multi-School Onboarding)
+@system_bp.route('/api/schools', methods=['GET'])
+def get_all_schools():
+    conn = database.get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM schools ORDER BY name ASC")
+    schools = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return jsonify({'success': True, 'schools': schools, 'count': len(schools)})
+
+@system_bp.route('/api/schools', methods=['POST'])
+@role_required(['admin'])
+def create_school():
+    data = request.get_json() or {}
+    try:
+        new_school = database.create_new_school(data)
+        return jsonify({
+            'success': True,
+            'message': f"School tenant '{new_school['name']}' onboarded successfully into SQLite!",
+            'school': new_school
+        }), 201
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to onboard school: {str(e)}'}), 500
+
 # School Settings Update
 @system_bp.route('/api/schools/<school_id>', methods=['PUT'])
 @role_required(['admin'])

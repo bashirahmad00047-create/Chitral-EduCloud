@@ -151,6 +151,20 @@ function initSchoolTenants() {
       if (school.id === state.currentSchoolId) opt.selected = true;
       select.appendChild(opt);
     });
+
+    const addOpt = document.createElement('option');
+    addOpt.value = '__add_new__';
+    addOpt.innerText = '➕ + Add New School...';
+    select.appendChild(addOpt);
+
+    select.onchange = (e) => {
+      if (e.target.value === '__add_new__') {
+        select.value = state.currentSchoolId;
+        openAddSchoolModal();
+      } else {
+        switchSchool(e.target.value);
+      }
+    };
   }
 
   if (loginCards) {
@@ -172,10 +186,68 @@ function initSchoolTenants() {
       `;
       loginCards.appendChild(card);
     });
-  }
 
-  if (select && !select.onchange) {
-    select.onchange = (e) => switchSchool(e.target.value);
+    const addCard = document.createElement('div');
+    addCard.className = "p-4 rounded-2xl border-2 border-dashed border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-100/50 cursor-pointer flex items-center justify-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-xs transition";
+    addCard.onclick = () => openAddSchoolModal();
+    addCard.innerHTML = `<i class="fa-solid fa-circle-plus text-base"></i> + Onboard New Campus`;
+    loginCards.appendChild(addCard);
+  }
+}
+
+function openAddSchoolModal() {
+  const modal = document.getElementById('modalAddSchool');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeAddSchoolModal() {
+  const modal = document.getElementById('modalAddSchool');
+  if (modal) modal.classList.add('hidden');
+  const form = document.getElementById('addSchoolForm');
+  if (form) form.reset();
+}
+
+async function handleCreateSchool(e) {
+  e.preventDefault();
+  const name = document.getElementById('newSchoolName').value.trim();
+  const nameUrdu = document.getElementById('newSchoolNameUrdu').value.trim();
+  const city = document.getElementById('newSchoolCity').value.trim();
+  const phone = document.getElementById('newSchoolPhone').value.trim();
+  const address = document.getElementById('newSchoolAddress').value.trim();
+  const principal = document.getElementById('newSchoolPrincipal').value.trim();
+  const bise = document.getElementById('newSchoolBise').value.trim();
+  const email = document.getElementById('newSchoolEmail').value.trim();
+  const logo = document.getElementById('newSchoolLogo').value.trim();
+  const heating = parseInt(document.getElementById('newSchoolHeating').value) || 800;
+
+  try {
+    const res = await fetch('/api/schools', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        name_urdu: nameUrdu,
+        campus_city: city,
+        phone,
+        address,
+        principal_name: principal,
+        bise_code: bise,
+        email,
+        logo_text: logo,
+        heating_levy: heating
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      closeAddSchoolModal();
+      showToast(data.message || `Campus '${name}' successfully onboarded!`);
+      state.currentSchoolId = data.school.id;
+      await loadSchoolData(data.school.id);
+    } else {
+      showToast(data.error || "Failed to onboard school campus");
+    }
+  } catch (err) {
+    showToast("Network error creating school campus");
   }
 }
 

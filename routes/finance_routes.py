@@ -29,28 +29,49 @@ def collect_fee():
         conn.close()
         return jsonify({'error': 'Fee challan not found'}), 404
 
-    total_amount = challan['total_amount']
-    current_paid = challan['paid_amount'] + paid_amount
+    # Normalize payment method to respect SQLite CHECK constraint
+    pm_raw = str(payment_method).lower()
+    if 'jazz' in pm_raw:
+        clean_pm = 'JazzCash'
+    elif 'easy' in pm_raw:
+        clean_pm = 'EasyPaisa'
+    elif 'khyber' in pm_raw or 'bank' in pm_raw:
+        clean_pm = 'Bank of Khyber'
+    else:
+        clean_pm = 'Cash'
+
+    # Support dynamically recalculated itemized total (tuition + heating + exam - concession)
+    if 'total_amount' in data:
+        try:
+            total_amount = int(data['total_amount'])
+        except (ValueError, TypeError):
+            total_amount = challan['total_amount']
+    else:
+        total_amount = challan['total_amount']
+
+    current_paid = min(total_amount, challan['paid_amount'] + paid_amount)
     balance = max(0, total_amount - current_paid)
     new_status = 'PAID' if balance == 0 else ('PARTIAL' if current_paid > 0 else 'UNPAID')
 
     cursor.execute('''
     UPDATE fee_challans
-    SET paid_amount = ?, balance = ?, payment_method = ?, status = ?, paid_date = ?
+    SET total_amount = ?, paid_amount = ?, balance = ?, payment_method = ?, status = ?, paid_date = ?
     WHERE id = ?
-    ''', (current_paid, balance, payment_method, new_status, paid_date, challan['id']))
+    ''', (total_amount, current_paid, balance, clean_pm, new_status, paid_date, challan['id']))
 
     conn.commit()
     conn.close()
 
     return jsonify({
         'success': True,
-        'message': f'Fee payment of PKR {paid_amount:,} collected via {payment_method}!',
+        'message': f'Fee payment of PKR {paid_amount:,} collected via {clean_pm}!',
         'challan_no': challan['challan_no'],
         'paid_amount': paid_amount,
+        'total_amount': total_amount,
         'new_balance': balance,
         'status': new_status,
-        'receipt_date': paid_date
+        'receipt_date': paid_date,
+        'payment_method': clean_pm
     })
 
 @finance_bp.route('/api/fees/generate-challans', methods=['POST'])

@@ -351,3 +351,88 @@ def seed_db(conn):
     ''', broadcast_data)
 
     conn.commit()
+
+def slugify(text):
+    import re
+    text = re.sub(r'[^\w\s-]', '', text.lower().strip())
+    return re.sub(r'[-\s]+', '-', text)
+
+def create_new_school(school_data):
+    """
+    Onboard an unlimited new school tenant dynamically into SQLite.
+    Returns the created school dictionary.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+
+    name = (school_data.get('name') or '').strip()
+    if not name:
+        conn.close()
+        raise ValueError("School name is required")
+
+    base_slug = slugify(name)
+    if not base_slug:
+        import time
+        base_slug = f"school-{int(time.time()) % 10000}"
+
+    slug = base_slug
+    counter = 1
+    while True:
+        cursor.execute("SELECT id FROM schools WHERE id = ?", (slug,))
+        if not cursor.fetchone():
+            break
+        slug = f"{base_slug}-{counter}"
+        counter += 1
+
+    name_urdu = (school_data.get('name_urdu') or name).strip()
+    campus_city = (school_data.get('campus_city') or 'Chitral').strip()
+    address = (school_data.get('address') or f"{campus_city}, KP, Pakistan").strip()
+    phone = (school_data.get('phone') or '+92 345 0000000').strip()
+    principal_name = (school_data.get('principal_name') or 'Campus Principal').strip()
+    session_year = (school_data.get('session_year') or '2026-2027').strip()
+    bise_code = (school_data.get('bise_code') or f"BISE-KP-{slug[:4].upper()}-2026").strip()
+    email = (school_data.get('email') or f"info@{slug}.edu.pk").strip()
+    try:
+        heating_levy = int(school_data.get('heating_levy', 800))
+    except (ValueError, TypeError):
+        heating_levy = 800
+
+    words = [w for w in name.split() if w]
+    default_logo = "".join([w[0] for w in words[:3]]).upper() if words else "EDU"
+    logo_text = (school_data.get('logo_text') or default_logo).strip().upper()[:6]
+
+    cursor.execute('''
+    INSERT INTO schools (id, name, name_urdu, campus_city, address, phone, principal_name, session_year, logo_text, bise_code, email, heating_levy)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (slug, name, name_urdu, campus_city, address, phone, principal_name, session_year, logo_text, bise_code, email, heating_levy))
+
+    # Auto-provision Admin account for this school
+    admin_username = f"admin_{slug.replace('-', '_')}"
+    cursor.execute('''
+    INSERT OR IGNORE INTO users (school_id, username, password_hash, role, full_name, linked_student_id)
+    VALUES (?, ?, ?, 'admin', ?, NULL)
+    ''', (slug, admin_username, generate_password_hash("admin123"), principal_name))
+
+    # Starter student for immediate dashboard usability
+    stu_id = f"STU-{slug[:3].upper()}-01"
+    adm_no = f"{logo_text}-2026-001"
+    cursor.execute('''
+    INSERT OR IGNORE INTO students (id, school_id, admission_no, roll_no, full_name, name_urdu, father_name, father_name_urdu, gender, class_grade, section, phone, blood_group, address, monthly_fee, status)
+    VALUES (?, ?, ?, '101', 'Shahid Aziz', 'شاہد عزیز', 'Aziz Ullah', 'عزیز اللہ', 'Male', 'Grade 10', 'A', ?, 'B+', ?, 4500, 'Active')
+    ''', (stu_id, slug, adm_no, phone, address))
+
+    # Starter fee challan
+    challan_no = f"CH-{slug[:3].upper()}-1001"
+    total_fee = 4500 + heating_levy
+    cursor.execute('''
+    INSERT OR IGNORE INTO fee_challans (school_id, student_id, challan_no, month_year, tuition_fee, arrears, total_amount, paid_amount, balance, status)
+    VALUES (?, ?, ?, 'November 2026', 4500, 0, ?, 0, ?, 'UNPAID')
+    ''', (slug, stu_id, challan_no, total_fee, total_fee))
+
+    conn.commit()
+
+    cursor.execute("SELECT * FROM schools WHERE id = ?", (slug,))
+    created_school = dict(cursor.fetchone())
+    conn.close()
+
+    return created_school

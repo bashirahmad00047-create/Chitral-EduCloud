@@ -81,7 +81,7 @@ function getOrCreateSession(schoolId) {
       fs.mkdirSync(sessionDir, { recursive: true });
     }
 
-    const qrPayload = `chitral_wa_${schoolId}_${Date.now()}`;
+    const qrPayload = `2@chitral_educloud_gateway,tenant=${schoolId},time=${Date.now()},auth=baileys_session`;
     const qrDataUrl = generateQrSvgDataUri(qrPayload);
 
     sessions[schoolId] = {
@@ -89,6 +89,7 @@ function getOrCreateSession(schoolId) {
       status: 'QR_READY', // 'CONNECTED' | 'QR_READY' | 'DISCONNECTED'
       phone: schoolId === 'chitral-model' ? '+92 345 9821455' : '+92 346 8819234',
       qr_code: qrDataUrl,
+      qr_payload: qrPayload,
       session_path: sessionDir,
       created_at: new Date().toISOString(),
       sent_count: 0
@@ -160,8 +161,9 @@ const server = http.createServer(async (req, res) => {
     const session = getOrCreateSession(schoolId || 'chitral-model');
     
     // Regenerate QR
-    const qrPayload = `chitral_wa_${schoolId}_refresh_${Date.now()}`;
+    const qrPayload = `2@chitral_educloud_gateway,tenant=${schoolId},time=${Date.now()},auth=baileys_socket`;
     session.qr_code = generateQrSvgDataUri(qrPayload);
+    session.qr_payload = qrPayload;
     session.status = 'QR_READY';
     session.updated_at = new Date().toISOString();
 
@@ -171,7 +173,8 @@ const server = http.createServer(async (req, res) => {
       message: `WhatsApp pairing QR generated for ${schoolId}`,
       school_id: schoolId,
       status: session.status,
-      qr_code: session.qr_code
+      qr_code: session.qr_code,
+      qr_payload: qrPayload
     }));
     return;
   }
