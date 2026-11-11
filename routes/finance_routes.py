@@ -1,14 +1,24 @@
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 import database
 from utils.auth import role_required
 
 finance_bp = Blueprint('finance', __name__)
 
+def get_tenant_school_id(param_school_id=None):
+    user_school = session.get('school_id')
+    user_name = session.get('username')
+    user_role = session.get('role')
+    if (user_name == 'admin' or user_role == 'superadmin') and param_school_id:
+        return param_school_id
+    if user_school:
+        return user_school
+    return param_school_id or 'chitral-model'
+
 @finance_bp.route('/api/fees/pending-heads', methods=['GET'])
 def get_pending_heads():
     student_id = request.args.get('student_id')
-    school_id = request.args.get('school_id', 'chitral-model')
+    school_id = get_tenant_school_id(request.args.get('school_id'))
     conn = database.get_db()
     cursor = conn.cursor()
 
@@ -58,7 +68,7 @@ def get_pending_heads():
 @finance_bp.route('/api/fees/collect', methods=['POST'])
 def collect_fee():
     data = request.get_json() or {}
-    school_id = data.get('school_id', 'chitral-model')
+    school_id = get_tenant_school_id(data.get('school_id'))
     student_id = data.get('student_id')
     challan_no = data.get('challan_no')
     fee_head = data.get('fee_head')
@@ -165,7 +175,7 @@ def collect_fee():
 @finance_bp.route('/api/fees/generate-challans', methods=['POST'])
 def generate_challans():
     data = request.get_json() or {}
-    school_id = data.get('school_id', 'chitral-model')
+    school_id = get_tenant_school_id(data.get('school_id'))
     month_year = data.get('month_year', 'November 2026')
     include_heating = data.get('include_heating', True)
 
@@ -204,7 +214,7 @@ def generate_challans():
 def pay_staff():
     data = request.get_json() or {}
     emp_id = data.get('emp_id')
-    school_id = data.get('school_id', 'chitral-model')
+    school_id = get_tenant_school_id(data.get('school_id'))
     paid_date = datetime.now().strftime('%Y-%m-%d')
 
     conn = database.get_db()
@@ -229,7 +239,7 @@ def pay_staff():
 
 @finance_bp.route('/api/expenses', methods=['GET'])
 def get_expenses():
-    school_id = request.args.get('school_id', 'chitral-model')
+    school_id = get_tenant_school_id(request.args.get('school_id'))
     conn = database.get_db()
     cursor = conn.cursor()
     cursor.execute('''
@@ -245,7 +255,7 @@ def get_expenses():
 @role_required(['admin'])
 def add_expense():
     data = request.get_json() or {}
-    school_id = data.get('school_id', 'chitral-model')
+    school_id = get_tenant_school_id(data.get('school_id'))
     category = (data.get('category') or 'General Expense').strip()
     title = (data.get('title') or '').strip()
     try:
@@ -281,7 +291,7 @@ def add_expense():
 
 @finance_bp.route('/api/expenses/cashbook-summary', methods=['GET'])
 def get_cashbook_summary():
-    school_id = request.args.get('school_id', 'chitral-model')
+    school_id = get_tenant_school_id(request.args.get('school_id'))
     conn = database.get_db()
     cursor = conn.cursor()
 

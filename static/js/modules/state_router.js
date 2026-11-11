@@ -27,16 +27,27 @@ async function checkAuthSession() {
     const data = await res.json();
     if (data.authenticated && data.user) {
       state.currentUser = data.user;
+      state.currentSchoolId = data.user.school_id || 'chitral-model';
       state.currentRole = data.user.role || 'admin';
-      setRole(data.user.role || 'admin', false);
+      setGatewayMode(false);
       updateHeaderUserUI(data.user);
+      await loadSchoolData(state.currentSchoolId);
+      if (typeof applyRolePermissions === 'function') applyRolePermissions(state.currentRole);
+      if (state.currentRole === 'teacher') switchTab('screen-teacher');
+      else if (state.currentRole === 'parent') switchTab('screen-parent');
+      else switchTab('screen-dashboard');
     } else {
-      // Default strictly to Admin on initial launch
-      setRole('admin', true);
+      state.currentUser = null;
+      setGatewayMode(true);
+      await loadPublicSchools();
+      switchTab('screen-login');
     }
   } catch (err) {
     console.warn("Auth check:", err);
-    setRole('admin', false);
+    state.currentUser = null;
+    setGatewayMode(true);
+    await loadPublicSchools();
+    switchTab('screen-login');
   }
 }
 
@@ -266,6 +277,16 @@ function updateSchoolHeaderUI() {
     liveBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs border border-emerald-500 flex items-center gap-1";
   }
 
+  // Strict Multi-Tenant Locked School Header Identity
+  const lockedSchoolName = document.getElementById('lockedSchoolName');
+  if (lockedSchoolName) lockedSchoolName.innerText = isUr && school.name_urdu ? school.name_urdu : (school.name || 'Chitral Model College');
+
+  const lockedTenantId = document.getElementById('lockedTenantId');
+  if (lockedTenantId) lockedTenantId.innerText = `🔒 ${school.id || state.currentSchoolId || 'chitral-model'}`;
+
+  const lockedCampusCity = document.getElementById('lockedCampusCity');
+  if (lockedCampusCity) lockedCampusCity.innerText = school.campus_city ? `${school.campus_city} Campus` : 'Chitral Campus';
+
   // Dashboard Headings
   const dashSchoolHeading = document.getElementById('dashSchoolHeading');
   if (dashSchoolHeading) dashSchoolHeading.innerText = isUr && school.name_urdu ? school.name_urdu : (school.name || 'Chitral Model College');
@@ -402,10 +423,172 @@ async function loginAsRole(role) {
 window.switchRole = setRole;
 window.setRole = setRole;
 
+// ==================== BASHFLOW-STYLE STRICT MULTI-TENANT GATEWAY CONTROLLERS ====================
+
+function setGatewayMode(isGateway) {
+  const sidebar = document.getElementById('sidebar');
+  const sidebarToggle = document.getElementById('sidebarToggleBtn');
+  const authControls = document.getElementById('headerAuthenticatedControls');
+  const gatewayControls = document.getElementById('headerGatewayControls');
+  const tenantBadge = document.getElementById('headerTenantBadge');
+  const mobileNav = document.getElementById('mobileBottomNav');
+
+  if (isGateway) {
+    if (sidebar) sidebar.classList.add('hidden');
+    if (sidebarToggle) sidebarToggle.classList.add('hidden');
+    if (authControls) {
+      authControls.classList.add('hidden');
+      authControls.classList.remove('flex');
+    }
+    if (gatewayControls) {
+      gatewayControls.classList.remove('hidden');
+      gatewayControls.classList.add('flex');
+    }
+    if (tenantBadge) {
+      tenantBadge.classList.add('hidden');
+      tenantBadge.classList.remove('md:flex');
+    }
+    if (mobileNav) mobileNav.classList.add('hidden');
+  } else {
+    if (sidebar) sidebar.classList.remove('hidden');
+    if (sidebarToggle) sidebarToggle.classList.remove('hidden');
+    if (authControls) {
+      authControls.classList.remove('hidden');
+      authControls.classList.add('flex');
+    }
+    if (gatewayControls) {
+      gatewayControls.classList.add('hidden');
+      gatewayControls.classList.remove('flex');
+    }
+    if (tenantBadge) {
+      tenantBadge.classList.remove('hidden');
+      tenantBadge.classList.add('md:flex');
+    }
+    if (mobileNav) mobileNav.classList.remove('hidden');
+  }
+}
+
+async function loadPublicSchools() {
+  try {
+    const res = await fetch('/api/schools/public-list');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.schools && data.schools.length > 0) {
+      const select = document.getElementById('gatewaySchoolSelect');
+      if (select) {
+        select.innerHTML = '';
+        data.schools.forEach(school => {
+          const opt = document.createElement('option');
+          opt.value = school.id;
+          opt.innerText = `${school.name} (${school.campus_city || 'Chitral'})`;
+          if (school.id === state.currentSchoolId) opt.selected = true;
+          select.appendChild(opt);
+        });
+      }
+    }
+  } catch (err) {
+    console.warn("Public schools load error:", err);
+  }
+}
+
+function switchGatewayTab(tab) {
+  const paneLogin = document.getElementById('paneGatewayLogin');
+  const paneRegister = document.getElementById('paneGatewayRegister');
+  const btnLogin = document.getElementById('tabBtnLogin');
+  const btnRegister = document.getElementById('tabBtnRegister');
+
+  if (tab === 'register') {
+    if (paneLogin) paneLogin.classList.add('hidden');
+    if (paneRegister) paneRegister.classList.remove('hidden');
+    if (btnRegister) {
+      btnRegister.className = "flex-1 py-2.5 px-4 rounded-xl font-extrabold text-xs transition-all bg-white dark:bg-emerald-600 text-emerald-800 dark:text-white shadow-xs flex items-center justify-center gap-2";
+    }
+    if (btnLogin) {
+      btnLogin.className = "flex-1 py-2.5 px-4 rounded-xl font-bold text-xs transition-all text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-white flex items-center justify-center gap-2";
+    }
+  } else {
+    if (paneRegister) paneRegister.classList.add('hidden');
+    if (paneLogin) paneLogin.classList.remove('hidden');
+    if (btnLogin) {
+      btnLogin.className = "flex-1 py-2.5 px-4 rounded-xl font-extrabold text-xs transition-all bg-white dark:bg-emerald-600 text-emerald-800 dark:text-white shadow-xs flex items-center justify-center gap-2";
+    }
+    if (btnRegister) {
+      btnRegister.className = "flex-1 py-2.5 px-4 rounded-xl font-bold text-xs transition-all text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-white flex items-center justify-center gap-2";
+    }
+  }
+}
+
+function togglePasswordVisibility(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) {
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    }
+  } else {
+    input.type = 'password';
+    if (icon) {
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  }
+}
+
+async function handleDemoLogin(role, schoolId) {
+  try {
+    showToast(`Launching ${role.toUpperCase()} Workspace...`);
+    const res = await fetch('/api/auth/demo-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: role || 'admin', school_id: schoolId || 'chitral-model' })
+    });
+    const data = await res.json();
+    if (res.ok && data.success && data.user) {
+      state.currentUser = data.user;
+      state.currentSchoolId = data.user.school_id;
+      state.currentRole = data.user.role;
+      setGatewayMode(false);
+      updateHeaderUserUI(data.user);
+      await loadSchoolData(data.user.school_id);
+      if (typeof applyRolePermissions === 'function') applyRolePermissions(data.user.role);
+      
+      if (data.user.role === 'teacher') switchTab('screen-teacher');
+      else if (data.user.role === 'parent') switchTab('screen-parent');
+      else switchTab('screen-dashboard');
+
+      showToast(`Welcome! Logged into ${state.school.name || schoolId} (${data.user.full_name})`);
+    } else {
+      showToast(data.error || "Demo login failed");
+    }
+  } catch (err) {
+    showToast("Authentication request error");
+  }
+}
+
+function handleQuickDemoAccess() {
+  handleDemoLogin('admin', 'chitral-model');
+}
+
 async function handleCredentialsLogin(e) {
-  e.preventDefault();
-  const username = document.getElementById('loginUsername').value;
-  const password = document.getElementById('loginPassword').value;
+  if (e && e.preventDefault) e.preventDefault();
+  const schoolSelect = document.getElementById('gatewaySchoolSelect');
+  const schoolId = schoolSelect ? schoolSelect.value : state.currentSchoolId;
+  const username = (document.getElementById('loginUsername')?.value || '').trim();
+  const password = (document.getElementById('loginPassword')?.value || '').trim();
+
+  if (!username || !password) {
+    showToast("Username and password are required");
+    return;
+  }
+
+  const submitBtn = document.getElementById('btnLoginSubmit');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...`;
+  }
 
   try {
     const res = await fetch('/api/auth/login', {
@@ -414,20 +597,103 @@ async function handleCredentialsLogin(e) {
       body: JSON.stringify({
         username: username,
         password: password,
-        school_id: state.currentSchoolId
+        school_id: schoolId
       })
     });
     const data = await res.json();
     if (res.ok && data.success) {
       state.currentUser = data.user;
+      state.currentSchoolId = data.user.school_id;
+      state.currentRole = data.user.role;
+      setGatewayMode(false);
       updateHeaderUserUI(data.user);
-      setRole(data.user.role);
-      showToast(data.message || "Logged in successfully!");
+      await loadSchoolData(data.user.school_id);
+      if (typeof applyRolePermissions === 'function') applyRolePermissions(data.user.role);
+      
+      if (data.user.role === 'teacher') switchTab('screen-teacher');
+      else if (data.user.role === 'parent') switchTab('screen-parent');
+      else switchTab('screen-dashboard');
+
+      showToast(data.message || `Welcome back, ${data.user.full_name}!`);
     } else {
-      showToast(data.message || "Invalid username or password!");
+      showToast(data.message || data.error || "Invalid username or password!");
     }
   } catch (err) {
     showToast("Authentication request failed");
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `<i class="fa-solid fa-lock-open"></i> <span>Sign In to Isolated School Portal</span>`;
+    }
+  }
+}
+
+async function handleSchoolRegistration(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const name = (document.getElementById('regSchoolName')?.value || '').trim();
+  const nameUrdu = (document.getElementById('regSchoolNameUrdu')?.value || '').trim();
+  const campusCity = (document.getElementById('regCampusCity')?.value || 'Chitral Town').trim();
+  const address = (document.getElementById('regAddress')?.value || '').trim();
+  const biseCode = (document.getElementById('regBiseCode')?.value || '').trim();
+  const principalName = (document.getElementById('regPrincipalName')?.value || '').trim();
+  const phone = (document.getElementById('regPhone')?.value || '').trim();
+  const monthlyFee = parseInt(document.getElementById('regMonthlyFee')?.value || 3500);
+  const heatingLevy = parseInt(document.getElementById('regHeatingLevy')?.value || 700);
+  const adminUsername = (document.getElementById('regAdminUsername')?.value || '').trim();
+  const adminPassword = (document.getElementById('regAdminPassword')?.value || '').trim();
+
+  if (!name || !adminUsername || !adminPassword) {
+    showToast("Please fill in School Name and Admin Credentials");
+    return;
+  }
+
+  const submitBtn = document.getElementById('btnRegisterSubmit');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Provisioning School Workspace...`;
+  }
+
+  try {
+    const res = await fetch('/api/schools/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name,
+        name_urdu: nameUrdu,
+        campus_city: campusCity,
+        address: address,
+        bise_code: biseCode,
+        principal_name: principalName,
+        phone: phone,
+        default_monthly_fee: monthlyFee,
+        heating_levy: heatingLevy,
+        admin_username: adminUsername,
+        admin_password: adminPassword
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      state.currentUser = data.user;
+      state.currentSchoolId = data.school.id;
+      state.currentRole = 'admin';
+      setGatewayMode(false);
+      updateHeaderUserUI(data.user);
+      await loadSchoolData(data.school.id);
+      if (typeof applyRolePermissions === 'function') applyRolePermissions('admin');
+      switchTab('screen-dashboard');
+      showToast(`🎉 School Workspace "${data.school.name}" is now live!`);
+    } else {
+      showToast(data.error || "Failed to register school");
+    }
+  } catch (err) {
+    showToast("School registration network error");
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>Register School Tenant & Launch ERP Workspace</span>`;
+    }
   }
 }
 
@@ -436,7 +702,9 @@ async function handleUserLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
   } catch (err) {}
   state.currentUser = null;
-  navigateTo('screen-login');
+  setGatewayMode(true);
+  loadPublicSchools();
+  switchTab('screen-login');
   showToast("Logged out of Chitral EduCloud ERP");
 }
 
@@ -494,7 +762,13 @@ function toggleMobileSidebar() {
 
 function switchTab(rawScreenId) {
   if (!rawScreenId) return;
-  const screenId = normalizeScreenId(rawScreenId);
+  let screenId = normalizeScreenId(rawScreenId);
+
+  // Strict Multi-Tenant Gateway Guard:
+  // Unauthenticated visitors are strictly locked to screen-login
+  if (!state.currentUser && screenId !== 'screen-login') {
+    screenId = 'screen-login';
+  }
   state.currentScreen = screenId;
 
   // 1. Hide all screens
@@ -751,6 +1025,13 @@ window.toggleMobileSidebar = toggleMobileSidebar;
 window.handleUserLogout = handleUserLogout;
 window.loginAsRole = loginAsRole;
 window.handleCredentialsLogin = handleCredentialsLogin;
+window.handleSchoolRegistration = handleSchoolRegistration;
+window.handleDemoLogin = handleDemoLogin;
+window.handleQuickDemoAccess = handleQuickDemoAccess;
+window.setGatewayMode = setGatewayMode;
+window.loadPublicSchools = loadPublicSchools;
+window.switchGatewayTab = switchGatewayTab;
+window.togglePasswordVisibility = togglePasswordVisibility;
 window.applyRolePermissions = applyRolePermissions;
 window.loadSchoolData = loadSchoolData;
 window.showToast = showToast;

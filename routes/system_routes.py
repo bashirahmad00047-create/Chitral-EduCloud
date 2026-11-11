@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 import database
-from utils.auth import role_required
+from utils.auth import role_required, login_user_session
 from utils.exports import (
     generate_students_csv,
     generate_attendance_csv,
@@ -42,6 +42,74 @@ def send_broadcast():
     })
 
 # School Tenant Endpoints (Unlimited Multi-School Onboarding)
+@system_bp.route('/api/schools/public-list', methods=['GET'])
+def get_public_schools():
+    """Public lightweight directory of registered schools for multi-tenant gateway login."""
+    conn = database.get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, name_urdu, campus_city, logo_text, bise_code FROM schools ORDER BY name ASC")
+    schools = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return jsonify({'success': True, 'schools': schools, 'count': len(schools)})
+
+@system_bp.route('/api/schools/register', methods=['POST'])
+def register_school_public():
+    """
+    Bashflow-Style Public School Self-Registration Gateway.
+    Instantly provisions a new school tenant in SQLite, registers the Principal admin,
+    creates isolated Baileys directory, and automatically establishes the session.
+    """
+    data = request.get_json() or {}
+    name = (data.get('name') or '').strip()
+    if not name:
+        return jsonify({'error': 'School name is required'}), 400
+
+    admin_username = (data.get('admin_username') or '').strip()
+    admin_password = (data.get('admin_password') or '').strip()
+
+    if not admin_username or not admin_password:
+        return jsonify({'error': 'Admin username and password are required for school registration'}), 400
+
+    try:
+        new_school = database.create_new_school(data)
+        
+        # Look up created admin user to auto-login
+        conn = database.get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE school_id = ? AND username = ?", (new_school['id'], admin_username))
+        user_row = cursor.fetchone()
+        conn.close()
+
+        user_dict = dict(user_row) if user_row else {
+            'id': None,
+            'username': admin_username,
+            'role': 'admin',
+            'full_name': new_school.get('principal_name', 'Principal'),
+            'school_id': new_school['id'],
+            'linked_student_id': None
+        }
+
+        # Establish session
+        login_user_session(user_dict)
+
+        return jsonify({
+            'success': True,
+            'message': f"School tenant '{new_school['name']}' registered successfully! Welcome to Chitral EduCloud.",
+            'school': new_school,
+            'user': {
+                'id': user_dict.get('id'),
+                'username': user_dict['username'],
+                'role': user_dict['role'],
+                'full_name': user_dict['full_name'],
+                'school_id': user_dict['school_id'],
+                'linked_student_id': None
+            }
+        }), 201
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to register school: {str(e)}'}), 500
+
 @system_bp.route('/api/schools', methods=['GET'])
 def get_all_schools():
     conn = database.get_db()

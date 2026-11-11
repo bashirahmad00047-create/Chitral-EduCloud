@@ -53,34 +53,6 @@ def login():
 def get_session():
     user = get_current_user_session()
     if not user:
-        # If user explicitly clicked Logout, respect it
-        if session.get('explicit_logout'):
-            return jsonify({'authenticated': False, 'user': None})
-
-        # Default strictly to Admin on initial load for seamless demo & ERP administration
-        conn = database.get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE role = 'admin' AND school_id = 'chitral-model' LIMIT 1")
-        default_user = cursor.fetchone()
-        if not default_user:
-            cursor.execute("SELECT * FROM users WHERE role = 'admin' LIMIT 1")
-            default_user = cursor.fetchone()
-        conn.close()
-
-        if default_user:
-            u_dict = dict(default_user)
-            login_user_session(u_dict)
-            return jsonify({
-                'authenticated': True,
-                'user': {
-                    'id': u_dict['id'],
-                    'username': u_dict['username'],
-                    'role': 'admin',
-                    'full_name': u_dict['full_name'],
-                    'school_id': u_dict['school_id'],
-                    'linked_student_id': None
-                }
-            })
         return jsonify({'authenticated': False, 'user': None})
     return jsonify({'authenticated': True, 'user': user})
 

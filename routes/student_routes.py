@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 import database
 from utils.auth import role_required
 
@@ -7,7 +7,20 @@ student_bp = Blueprint('students', __name__)
 
 @student_bp.route('/api/bootstrap', methods=['GET'])
 def get_bootstrap():
-    school_id = request.args.get('school_id', 'chitral-model')
+    user_school_id = session.get('school_id')
+    user_name = session.get('username')
+    user_role = session.get('role')
+
+    req_school_id = request.args.get('school_id')
+    is_master_admin = (user_name == 'admin' or user_role == 'superadmin')
+
+    if is_master_admin and req_school_id:
+        school_id = req_school_id
+    elif user_school_id:
+        school_id = user_school_id
+    else:
+        school_id = req_school_id or 'chitral-model'
+
     date_str = request.args.get('date', '2026-10-12')
 
     conn = database.get_db()

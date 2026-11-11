@@ -20,50 +20,80 @@
         </div>
       </div>
 
-      <!-- School Tenant Selector (Multi-Tenant Switcher) -->
-      <div class="hidden md:flex items-center ml-2 border-l border-slate-200 dark:border-slate-700 pl-3 gap-2">
-        <label for="schoolTenantSelect" class="sr-only">School Branch</label>
-        <div class="relative">
-          <i class="fa-solid fa-school text-emerald-600 absolute left-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i>
-          <select id="schoolTenantSelect" class="text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg pl-8 pr-7 py-1.5 border border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer">
-            <!-- Populated dynamically via JS -->
-          </select>
-          <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+      <!-- Strict Multi-Tenant School Identity Badge (No Open Tenant Switching) -->
+      <div id="headerTenantBadge" class="hidden md:flex items-center ml-2 border-l border-slate-200 dark:border-slate-700 pl-3 gap-2">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/90 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 text-xs shadow-2xs">
+          <span class="flex h-2 w-2 relative">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-1.5">
+              <span id="lockedSchoolName" class="font-extrabold text-slate-900 dark:text-white leading-none">Chitral Model College & School</span>
+              <span id="lockedTenantId" class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">🔒 chitral-model</span>
+            </div>
+            <span id="lockedCampusCity" class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight font-medium">Chitral Town Campus</span>
+          </div>
         </div>
-        <button type="button" onclick="openAddSchoolModal()" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 text-xs font-bold flex items-center gap-1 shadow-xs transition" title="Register New School Tenant">
-          <i class="fa-solid fa-plus text-[10px]"></i> <span class="hidden sm:inline">+ New School</span>
-        </button>
+        <!-- Hidden select kept in DOM for backwards compatibility -->
+        <select id="schoolTenantSelect" class="hidden" aria-hidden="true"></select>
       </div>
     </div>
 
     <!-- Center/Right Header Controls -->
     <div class="flex items-center gap-2 sm:gap-3">
-      <!-- Command Palette Quick Search Trigger (Ctrl + K) -->
-      <button type="button" onclick="openCommandPalette()" class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-700/60 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600 text-xs transition shadow-2xs group" title="Press Ctrl + K to search students, screens & actions">
-        <i class="fa-solid fa-magnifying-glass text-emerald-600 group-hover:scale-110 transition-transform"></i>
-        <span class="font-medium text-slate-600 dark:text-slate-300">Quick Search...</span>
-        <span class="ml-1 px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 text-[10px] font-mono border border-slate-300 dark:border-slate-600 text-slate-400">Ctrl K</span>
-      </button>
+      <!-- Authenticated ERP Controls Container -->
+      <div id="headerAuthenticatedControls" class="flex items-center gap-2 sm:gap-3">
+        <!-- Command Palette Quick Search Trigger (Ctrl + K) -->
+        <button type="button" onclick="openCommandPalette()" class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-700/60 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600 text-xs transition shadow-2xs group" title="Press Ctrl + K to search students, screens & actions">
+          <i class="fa-solid fa-magnifying-glass text-emerald-600 group-hover:scale-110 transition-transform"></i>
+          <span class="font-medium text-slate-600 dark:text-slate-300">Quick Search...</span>
+          <span class="ml-1 px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 text-[10px] font-mono border border-slate-300 dark:border-slate-600 text-slate-400">Ctrl K</span>
+        </button>
 
-      <!-- Chitral Local Weather Widget Badge -->
-      <div class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 text-[11px] font-medium text-slate-600 dark:text-slate-300">
-        <i class="fa-solid fa-mountain-sun text-teal-600"></i>
-        <span>Chitral: 14°C Sunny</span>
+        <!-- Chitral Local Weather Widget Badge -->
+        <div class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 text-[11px] font-medium text-slate-600 dark:text-slate-300">
+          <i class="fa-solid fa-mountain-sun text-teal-600"></i>
+          <span>Chitral: 14°C Sunny</span>
+        </div>
+
+        <!-- Role Switcher Quick Pill -->
+        <div class="relative">
+          <div class="flex items-center bg-slate-100 dark:bg-slate-700 p-0.5 rounded-lg border border-slate-200 dark:border-slate-600 text-xs font-semibold">
+            <button id="roleBtnAdmin" onclick="setRole('admin')" class="px-2.5 py-1 rounded-md transition-all active-role-pill bg-white dark:bg-emerald-600 text-emerald-700 dark:text-white shadow-xs font-bold">
+              <i class="fa-solid fa-user-shield mr-1"></i><span class="hidden sm:inline">Admin</span>
+            </button>
+            <button id="roleBtnTeacher" onclick="setRole('teacher')" class="px-2.5 py-1 rounded-md transition-all text-slate-600 dark:text-slate-300 hover:text-emerald-600 font-semibold">
+              <i class="fa-solid fa-chalkboard-user mr-1"></i><span class="hidden sm:inline">Teacher</span>
+            </button>
+            <button id="roleBtnParent" onclick="setRole('parent')" class="px-2.5 py-1 rounded-md transition-all text-slate-600 dark:text-slate-300 hover:text-emerald-600 font-semibold">
+              <i class="fa-solid fa-hands-holding-child mr-1"></i><span class="hidden sm:inline">Parent</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- User Profile Pill -->
+        <div class="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-700 cursor-pointer" onclick="navigateTo('screen-settings')">
+          <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs ring-2 ring-emerald-500/30">
+            <span id="userAvatarText">AD</span>
+          </div>
+          <div class="hidden lg:block text-left">
+            <p id="userNameText" class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">Admin Rehmat</p>
+            <p id="userRoleText" class="text-[10px] text-emerald-600 font-semibold leading-tight">Principal Desk</p>
+          </div>
+        </div>
+
+        <!-- Logout Button -->
+        <button onclick="handleUserLogout()" class="p-2 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Sign Out">
+          <i class="fa-solid fa-power-off text-sm"></i>
+        </button>
       </div>
 
-      <!-- Role Switcher Quick Pill -->
-      <div class="relative">
-        <div class="flex items-center bg-slate-100 dark:bg-slate-700 p-0.5 rounded-lg border border-slate-200 dark:border-slate-600 text-xs font-semibold">
-          <button id="roleBtnAdmin" onclick="setRole('admin')" class="px-2.5 py-1 rounded-md transition-all active-role-pill bg-white dark:bg-emerald-600 text-emerald-700 dark:text-white shadow-xs font-bold">
-            <i class="fa-solid fa-user-shield mr-1"></i><span class="hidden sm:inline">Admin</span>
-          </button>
-          <button id="roleBtnTeacher" onclick="setRole('teacher')" class="px-2.5 py-1 rounded-md transition-all text-slate-600 dark:text-slate-300 hover:text-emerald-600 font-semibold">
-            <i class="fa-solid fa-chalkboard-user mr-1"></i><span class="hidden sm:inline">Teacher</span>
-          </button>
-          <button id="roleBtnParent" onclick="setRole('parent')" class="px-2.5 py-1 rounded-md transition-all text-slate-600 dark:text-slate-300 hover:text-emerald-600 font-semibold">
-            <i class="fa-solid fa-hands-holding-child mr-1"></i><span class="hidden sm:inline">Parent</span>
-          </button>
-        </div>
+      <!-- Gateway Direct Access Button (Visible when unauthenticated) -->
+      <div id="headerGatewayControls" class="hidden items-center gap-2">
+        <button onclick="handleQuickDemoAccess()" class="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/20 transition">
+          <i class="fa-solid fa-bolt"></i> <span>Instant Demo Access</span>
+        </button>
       </div>
 
       <!-- Bilingual Language Toggle Button: English / اردو RTL -->
@@ -75,22 +105,6 @@
       <!-- Dark / Light Mode Toggle -->
       <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-xs" title="Toggle Dark/Light Mode">
         <i id="themeIcon" class="fa-solid fa-moon"></i>
-      </button>
-
-      <!-- User Profile Pill -->
-      <div class="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-700 cursor-pointer" onclick="navigateTo('screen-settings')">
-        <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs ring-2 ring-emerald-500/30">
-          <span id="userAvatarText">AD</span>
-        </div>
-        <div class="hidden lg:block text-left">
-          <p id="userNameText" class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">Admin Rehmat</p>
-          <p id="userRoleText" class="text-[10px] text-emerald-600 font-semibold leading-tight">Principal Desk</p>
-        </div>
-      </div>
-
-      <!-- Logout Button -->
-      <button onclick="handleUserLogout()" class="p-2 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Sign Out">
-        <i class="fa-solid fa-power-off text-sm"></i>
       </button>
     </div>
   </header>
