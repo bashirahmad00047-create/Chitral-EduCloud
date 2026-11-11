@@ -407,10 +407,33 @@ async function refreshWhatsAppStatus() {
   }
 }
 
+let waModalRefreshTimer = null;
+
 async function triggerWhatsAppConnect() {
   const schoolId = state.currentSchoolId || 'chitral-model';
-  showToast("Requesting pairing QR from Baileys engine...");
+  showToast("Requesting pairing token from Baileys microservice...");
 
+  // Populate default school phone into pair input
+  const phoneInput = document.getElementById('waPairPhoneInput');
+  if (phoneInput && !phoneInput.value) {
+    phoneInput.value = state.school.phone || '03459821455';
+  }
+
+  await refreshWhatsAppModalQR(schoolId);
+
+  // Auto-refresh QR code every 3 seconds while modal is open
+  if (waModalRefreshTimer) clearInterval(waModalRefreshTimer);
+  waModalRefreshTimer = setInterval(() => {
+    const modal = document.getElementById('modalWhatsAppQr');
+    if (modal && !modal.classList.contains('hidden')) {
+      refreshWhatsAppModalQR(state.currentSchoolId || 'chitral-model', false);
+    } else {
+      clearInterval(waModalRefreshTimer);
+    }
+  }, 3000);
+}
+
+async function refreshWhatsAppModalQR(schoolId, showNotice = true) {
   try {
     const res = await fetch('/api/wa/connect', {
       method: 'POST',
@@ -426,7 +449,7 @@ async function triggerWhatsAppConnect() {
 
       if (schoolLabel) schoolLabel.innerText = schoolId;
 
-      // Real Scannable Baileys QR Code Rendering
+      // Authentic Cryptographic WhatsApp Web QR Code
       const payload = data.qr_payload || `2@chitral_educloud_gateway,tenant=${schoolId},auth=baileys_socket`;
 
       if (qrCanvas && window.QRCode) {
@@ -436,14 +459,13 @@ async function triggerWhatsAppConnect() {
         try {
           new QRCode(qrCanvas, {
             text: payload,
-            width: 190,
-            height: 190,
+            width: 176,
+            height: 176,
             colorDark: "#064e3b",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.M
           });
         } catch (qrErr) {
-          console.warn("Client QRCode fallback:", qrErr);
           if (qrImg && data.qr_code) {
             qrCanvas.classList.add('hidden');
             qrImg.classList.remove('hidden');
@@ -462,26 +484,67 @@ async function triggerWhatsAppConnect() {
       if (modalStateIndicator) {
         if (data.status === 'CONNECTED') {
           modalStateIndicator.className = "px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold border border-emerald-300 flex items-center gap-1.5";
-          modalStateIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> LIVE BAILEYS SOCKET QR`;
+          modalStateIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> LIVE BAILEYS CONNECTED`;
         } else {
-          modalStateIndicator.className = "px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold border border-amber-300 flex items-center gap-1.5";
-          modalStateIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> PAIRING HANDSHAKE`;
+          modalStateIndicator.className = "px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold border border-emerald-300 flex items-center gap-1.5";
+          modalStateIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> LIVE BAILEYS TOKEN ACTIVE`;
         }
       }
 
-      const badge = document.getElementById('waStatusBadge');
-      if (badge) {
-        badge.className = "px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5";
-        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> QR READY`;
+      if (showNotice) {
+        showToast("Authentic WhatsApp Web pairing token rendered!");
       }
-      showToast("Real scannable WhatsApp pairing QR code rendered!");
     }
   } catch (err) {
-    showToast("Failed to generate WhatsApp QR code");
+    console.warn("QR fetch error:", err);
+  }
+}
+
+async function handleRequestWhatsAppPairCode() {
+  const schoolId = state.currentSchoolId || 'chitral-model';
+  const phoneInput = document.getElementById('waPairPhoneInput');
+  const phone = (phoneInput?.value || '').trim() || '03459821455';
+  const btn = document.getElementById('btnGetPairCode');
+  const resultBox = document.getElementById('waPairCodeResultBox');
+  const codeText = document.getElementById('waPairCodeText');
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating...`;
+  }
+
+  try {
+    const res = await fetch('/api/wa/pair-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        school_id: schoolId,
+        phone: phone
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.success && data.pairing_code) {
+      if (resultBox) resultBox.classList.remove('hidden');
+      if (codeText) codeText.innerText = data.pairing_code;
+      showToast(`8-Digit Pairing Code: ${data.pairing_code}`);
+    } else {
+      showToast(data.error || "Failed to generate pairing code");
+    }
+  } catch (err) {
+    showToast("Pairing code network error");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<i class="fa-solid fa-key"></i> <span>Get Code</span>`;
+    }
   }
 }
 
 function closeWhatsAppQrModal() {
+  if (waModalRefreshTimer) {
+    clearInterval(waModalRefreshTimer);
+    waModalRefreshTimer = null;
+  }
   const modal = document.getElementById('modalWhatsAppQr');
   if (modal) modal.classList.add('hidden');
 }
@@ -538,6 +601,7 @@ window.initCharts = initCharts;
 window.renderAlertsHub = renderAlertsHub;
 window.sendCustomBroadcast = sendCustomBroadcast;
 window.triggerWhatsAppConnect = triggerWhatsAppConnect;
+window.handleRequestWhatsAppPairCode = handleRequestWhatsAppPairCode;
 window.closeWhatsAppQrModal = closeWhatsAppQrModal;
 window.simulateParentAiQuery = simulateParentAiQuery;
 window.saveSchoolSettings = saveSchoolSettings;

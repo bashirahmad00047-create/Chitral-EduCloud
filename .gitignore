@@ -7,3 +7,7 @@ __pycache__/
 env/
 *.log
 .DS_Store
+node_modules/
+whatsapp_engine/node_modules/
+whatsapp_engine/sessions/
+.pytest_cache/

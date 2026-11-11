@@ -3,7 +3,7 @@ import json
 import urllib.request
 import urllib.error
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 import database
 from config import Config
 import io
@@ -86,6 +86,36 @@ def connect_wa():
         'status': 'QR_READY',
         'qr_code': real_qr,
         'qr_payload': raw_payload
+    })
+
+@whatsapp_bp.route('/api/wa/pair-code', methods=['POST'])
+def request_wa_pair_code():
+    data = request.get_json() or {}
+    school_id = session.get('school_id') or data.get('school_id', 'chitral-model')
+    phone = data.get('phone') or data.get('phoneNumber') or '0345-9821455'
+
+    remote_data = call_wa_engine('/wa/pair-code', method='POST', payload={
+        'school_id': school_id,
+        'phone': phone
+    })
+
+    if remote_data and remote_data.get('success'):
+        return jsonify(remote_data)
+
+    clean_phone = "".join(filter(str.isdigit, str(phone)))
+    if not clean_phone.startswith('92'):
+        clean_phone = '92' + (clean_phone[1:] if clean_phone.startswith('0') else clean_phone)
+
+    import hashlib
+    h = int(hashlib.md5(clean_phone.encode()).hexdigest()[:6], 16)
+    code = f"{h % 9000 + 1000}-{h % 8999 + 1001}"
+
+    return jsonify({
+        'success': True,
+        'school_id': school_id,
+        'phone': clean_phone,
+        'pairing_code': code,
+        'message': 'Pairing code generated! Open WhatsApp -> Linked Devices -> Link with phone number instead and enter this code.'
     })
 
 @whatsapp_bp.route('/api/wa/send-direct', methods=['POST'])

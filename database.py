@@ -281,8 +281,38 @@ def init_db():
     count = cursor.fetchone()[0]
     if count == 0:
         seed_db(conn)
+    else:
+        seed_major_chitral_schools(conn)
 
     conn.close()
+
+def seed_major_chitral_schools(conn):
+    cursor = conn.cursor()
+    major_schools = [
+        ("chitral-model", "Chitral Model College & School", "چترال ماڈل کالج اینڈ اسکول", "Chitral Town", "Main Campus, Ataliq Bazaar Road, Chitral Town", "+92 (0943) 412580", "Prof. Rehmat Ullah Baig", "2026-2027", "CMC", "BISE Peshawar #CMC-4819", "info@chitralmodel.edu.pk", 800),
+        ("muslim-model", "Muslim Model School Chitral", "مسلم ماڈل اسکول چترال", "Chitral Town", "Shahi Qila Road, Chitral Town", "+92 (0943) 412100", "Sir Inayat Ullah", "2026-2027", "MMS", "BISE Malakand #MMS-5021", "info@muslimmodelschool.edu.pk", 750),
+        ("langlands-school", "The Langlands School & College Chitral", "دی لینگلینڈز اسکول اینڈ کالج چترال", "Chitral Town", "Seenlasht Road, Chitral Town", "+92 (0943) 412700", "Prof. Geoffrey D. Langlands", "2026-2027", "LSC", "BISE Peshawar #LSC-1002", "contact@langlands.edu.pk", 1200),
+        ("ak-hss-seenlasht", "Aga Khan Higher Secondary School Seenlasht", "آغا خان ہائر سیکنڈری اسکول سین لشٹ", "Seenlasht", "Seenlasht Campus, Chitral", "+92 (0943) 414200", "Madam Tuba Mir", "2026-2027", "AKHSS", "BISE Peshawar #AK-3301", "seenlasht@akhss.edu.pk", 1500),
+        ("fc-public-school", "FC Public School Chitral", "ایف سی پبلک اسکول چترال", "Chitral Cantt", "Frontier Corps Lines, Chitral Cantt", "+92 (0943) 413400", "Col. Tariq Mahmood", "2026-2027", "FCPS", "BISE Peshawar #FC-7712", "admin@fcpschitral.edu.pk", 600),
+        ("pamir-valley", "Pamir Valley Public School Booni", "پامیر ویلی پبلک اسکول بونی (اپر چترال)", "Booni", "Booni Main Road, Upper Chitral", "+92 (0943) 470120", "Sir Afzal Khan Pamiri", "2026-2027", "PVS", "BISE Malakand #PVS-1102", "admin@pamirvalleyschool.edu.pk", 1000),
+        ("hindukush", "Hindukush Public School Drosh", "ہندوکش پبلک اسکول دروش (لوئر چترال)", "Drosh", "Drosh Bypass Road, Lower Chitral", "+92 (0943) 420950", "Madam Gulrukh Sultana", "2026-2027", "HPS", "BISE Peshawar #HPS-2041", "principal@hindukushdrosh.edu.pk", 700),
+        ("al-nasir-public", "Al-Nasir Public School Garam Chashma", "الناصر پبلک اسکول گرم چشمہ", "Garam Chashma", "Lotkoh Valley, Garam Chashma", "+92 (0943) 480110", "Sir Nasir Ahmad", "2026-2027", "ANPS", "BISE Malakand #ANPS-4401", "info@alnasir.edu.pk", 650)
+    ]
+    for s in major_schools:
+        cursor.execute('''
+        INSERT OR IGNORE INTO schools (id, name, name_urdu, campus_city, address, phone, principal_name, session_year, logo_text, bise_code, email, heating_levy)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', s)
+
+        # Ensure Admin user exists for each school
+        sid = s[0]
+        pname = s[6]
+        uname = 'admin' if sid == 'chitral-model' else 'admin_' + sid.replace('-', '_')
+        cursor.execute('''
+        INSERT OR IGNORE INTO users (school_id, username, password_hash, role, full_name, linked_student_id)
+        VALUES (?, ?, ?, 'admin', ?, NULL)
+        ''', (sid, uname, generate_password_hash('admin123'), pname))
+    conn.commit()
 
 def calculate_grade(percentage):
     if percentage >= 80:

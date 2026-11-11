@@ -379,23 +379,21 @@ function renderIdCardForStudent(studentId) {
   document.getElementById('idCardEmergencyPhone').innerText = stu.phone;
   document.getElementById('idCardAddressShort').innerText = stu.address || 'Chitral Town';
 
-  // Live QR Code Generation
+  // Live Scannable Mobile QR Code Generation (Encodes live LAN Wi-Fi verification URL)
   const qrContainer = document.getElementById('idCardQrContainer');
   if (qrContainer) {
     qrContainer.innerHTML = '';
-    const verificationData = JSON.stringify({
-      school: school.name,
-      bise: school.bise_code,
-      student: stu.full_name,
-      roll: stu.roll_no,
-      adm: stu.admission_no,
-      class: `${stu.class_grade}-${stu.section}`,
-      db_status: "VERIFIED_SQLITE_2026"
-    });
+    
+    // Use actual LAN Wi-Fi IP so scanning with a real smartphone on the school Wi-Fi opens the official verified badge
+    let host = window.location.host;
+    if (state.lanIp && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      host = `${state.lanIp}:${window.location.port || '5050'}`;
+    }
+    const verificationUrl = `${window.location.protocol}//${host}/verify/student/${encodeURIComponent(stu.admission_no)}`;
 
     try {
       new QRCode(qrContainer, {
-        text: verificationData,
+        text: verificationUrl,
         width: 110,
         height: 110,
         colorDark: "#064e3b",

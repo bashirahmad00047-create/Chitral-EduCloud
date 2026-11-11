@@ -108,6 +108,7 @@ def get_bootstrap():
     return jsonify({
         'school': active_school,
         'schools': all_schools,
+        'lan_ip': '10.154.203.239',
         'kpis': {
             'total_students': total_students,
             'boys_count': boys_count,

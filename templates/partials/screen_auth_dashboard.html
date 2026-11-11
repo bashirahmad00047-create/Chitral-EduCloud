@@ -138,86 +138,230 @@
             </div>
 
 
-            <!-- ================= TAB 1: LOGIN PANE ================= -->
-            <div id="paneGatewayLogin" class="space-y-5">
+            <!-- ================= TAB 1: LOGIN PANE (اسکول لاگ ان) ================= -->
+            <div id="paneGatewayLogin" class="space-y-4">
               <div>
-                <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Sign In to Your School Workspace</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Select your school branch or enter your registered credentials.</p>
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>School Login (لاگ ان کریں)</span>
+                  <span class="text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold">Isolated Tenant</span>
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Select your registered school campus and enter your credentials.</p>
               </div>
 
-              <form id="credentialsLoginForm" onsubmit="handleCredentialsLogin(event)" class="space-y-4 text-xs">
+              <!-- Quick Fill Credential Helper Chips -->
+              <div class="p-3 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200 dark:border-emerald-800 space-y-1.5">
+                <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
+                  <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> 1-Click Quick Fill Credential Chips (Instant Testing)
+                </p>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" onclick="fillQuickLogin('chitral-model', 'admin', 'admin_cmc', 'admin123')" class="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100 transition shadow-2xs">
+                    🏫 Principal (Chitral Model)
+                  </button>
+                  <button type="button" onclick="fillQuickLogin('chitral-model', 'teacher', 'teacher_farooq', 'teach123')" class="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 text-teal-700 dark:text-teal-300 text-[10px] font-bold border border-teal-300 dark:border-teal-700 hover:bg-teal-100 transition shadow-2xs">
+                    🧑‍🏫 Teacher (CMC)
+                  </button>
+                  <button type="button" onclick="fillQuickLogin('chitral-model', 'parent', 'parent_wazir', 'parent123')" class="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold border border-indigo-300 dark:border-indigo-700 hover:bg-indigo-100 transition shadow-2xs">
+                    👨‍👧 Parent (CMC)
+                  </button>
+                  <button type="button" onclick="fillQuickLogin('muslim-model', 'admin', 'admin_muslim_model', 'admin123')" class="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-300 text-[10px] font-bold border border-blue-300 dark:border-blue-700 hover:bg-blue-100 transition shadow-2xs">
+                    🏛️ Muslim Model School
+                  </button>
+                  <button type="button" onclick="fillQuickLogin('langlands-school', 'admin', 'admin_langlands_school', 'admin123')" class="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-300 dark:border-purple-700 hover:bg-purple-100 transition shadow-2xs">
+                    🎓 Langlands School
+                  </button>
+                  <button type="button" onclick="fillQuickLogin('pamir-valley', 'admin', 'admin_pamir', 'admin123')" class="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 text-amber-700 dark:text-amber-300 text-[10px] font-bold border border-amber-300 dark:border-amber-700 hover:bg-amber-100 transition shadow-2xs">
+                    🏔️ Pamir Valley Booni
+                  </button>
+                  <button type="button" onclick="fillQuickLogin('hindukush', 'admin', 'admin_drosh', 'admin123')" class="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 text-rose-700 dark:text-rose-300 text-[10px] font-bold border border-rose-300 dark:border-rose-700 hover:bg-rose-100 transition shadow-2xs">
+                    🌲 Hindukush Drosh
+                  </button>
+                </div>
+              </div>
+
+              <form id="credentialsLoginForm" onsubmit="handleCredentialsLogin(event)" class="space-y-3.5 text-xs">
                 <!-- School Tenant Selector -->
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
-                    <span><i class="fa-solid fa-school text-emerald-600 mr-1"></i> School Branch / Campus</span>
-                    <span class="text-[10px] text-slate-400 font-normal">Auto-detected or select</span>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+                    <span><i class="fa-solid fa-school text-emerald-600 mr-1"></i> Registered School (چترال کے اسکولز) *</span>
+                    <span class="text-[10px] text-slate-400 font-normal">Pre-populated list</span>
                   </label>
                   <div class="relative">
-                    <select id="gatewaySchoolSelect" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition cursor-pointer">
-                      <option value="chitral-model">Chitral Model College & School (Chitral Town)</option>
-                      <option value="karakoram-public-school-booni">Booni Public Academy (Booni, Upper Chitral)</option>
-                      <option value="pamir-valley">Pamir Public School & College (Mastuj)</option>
-                      <option value="hindukush">Hindukush Model School (Drosh, Lower Chitral)</option>
+                    <select id="gatewaySchoolSelect" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-semibold outline-none focus:ring-2 focus:ring-emerald-500 transition cursor-pointer">
+                      <option value="chitral-model">Chitral Model College & School (چترال ماڈل کالج)</option>
+                      <option value="muslim-model">Muslim Model School Chitral (مسلم ماڈل اسکول چترال)</option>
+                      <option value="langlands-school">The Langlands School & College Chitral (دی لینگلینڈز اسکول)</option>
+                      <option value="ak-hss-seenlasht">Aga Khan Higher Secondary School Seenlasht (سین لشٹ)</option>
+                      <option value="fc-public-school">FC Public School Chitral (ایف سی پبلک اسکول)</option>
+                      <option value="pamir-valley">Pamir Valley Public School Booni (پامیر ویلی بونی)</option>
+                      <option value="hindukush">Hindukush Public School Drosh (ہندوکش دروش)</option>
+                      <option value="al-nasir-public">Al-Nasir Public School Garam Chashma (الناصر گرم چشمہ)</option>
                     </select>
                   </div>
                 </div>
 
-                <!-- Username -->
-                <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    <i class="fa-solid fa-user text-emerald-600 mr-1"></i> Username
-                  </label>
-                  <input type="text" id="loginUsername" placeholder="e.g. admin_cmc, teacher_farooq, parent_wazir" required class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                <!-- Role Selector & Username -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      <i class="fa-solid fa-user-tag text-emerald-600 mr-1"></i> Access Role
+                    </label>
+                    <select id="loginRoleSelect" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-semibold outline-none focus:ring-2 focus:ring-emerald-500 transition cursor-pointer">
+                      <option value="admin">Admin / Principal Desk</option>
+                      <option value="teacher">Class Teacher Workspace</option>
+                      <option value="parent">Parent / Student Portal</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      <i class="fa-solid fa-user text-emerald-600 mr-1"></i> Username *
+                    </label>
+                    <input type="text" id="loginUsername" placeholder="e.g. admin_cmc" required class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                  </div>
                 </div>
 
                 <!-- Password -->
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
-                    <span><i class="fa-solid fa-key text-emerald-600 mr-1"></i> Password</span>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+                    <span><i class="fa-solid fa-key text-emerald-600 mr-1"></i> Password *</span>
                     <button type="button" onclick="togglePasswordVisibility('loginPassword', 'eyeIconLogin')" class="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
                       <i id="eyeIconLogin" class="fa-solid fa-eye"></i> <span>Show</span>
                     </button>
                   </label>
-                  <input type="password" id="loginPassword" placeholder="Enter your password" required class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                  <input type="password" id="loginPassword" placeholder="Enter password" required class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition">
                 </div>
 
                 <!-- Remember / Help -->
-                <div class="flex items-center justify-between text-xs pt-1">
+                <div class="flex items-center justify-between text-xs pt-0.5">
                   <label class="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300">
                     <input type="checkbox" id="rememberMeCheckbox" checked class="rounded text-emerald-600 focus:ring-emerald-500">
-                    <span>Remember School Session</span>
+                    <span>Keep session active</span>
                   </label>
-                  <span class="text-slate-400 text-[11px]">Strict SQLite Multi-Tenancy</span>
+                  <span class="text-slate-400 text-[11px] font-mono">100% Isolated Sandbox</span>
                 </div>
 
                 <!-- Submit Button -->
                 <button type="submit" id="btnLoginSubmit" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2 text-sm">
                   <i class="fa-solid fa-lock-open"></i>
-                  <span>Sign In to Isolated School Portal</span>
+                  <span>Sign In to School Portal (لاگ ان کریں)</span>
                 </button>
               </form>
-
-              <!-- Notice on Credentials -->
-              <div class="p-3 bg-slate-50 dark:bg-slate-700/40 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
-                <p><strong class="text-slate-700 dark:text-slate-300">Default Demo Credentials:</strong></p>
-                <p>• Principal: <code class="font-mono font-bold text-emerald-600">admin_cmc</code> / <code class="font-mono">admin123</code></p>
-                <p>• Teacher: <code class="font-mono font-bold text-teal-600">teacher_farooq</code> / <code class="font-mono">teach123</code></p>
-                <p>• Parent: <code class="font-mono font-bold text-indigo-600">parent_wazir</code> / <code class="font-mono">parent123</code></p>
-              </div>
             </div>
 
 
-            <!-- ================= TAB 2: REGISTER SCHOOL PANE ================= -->
-            <div id="paneGatewayRegister" class="space-y-5 hidden">
+            <!-- ================= TAB 2: REGISTER YOUR SCHOOL PANE (نیا اسکول رجسٹر کریں) ================= -->
+            <div id="paneGatewayRegister" class="space-y-4 hidden">
               <div>
                 <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>Register Your School on Chitral EduCloud</span>
+                  <span>Register Your School (نیا اسکول رجسٹر کریں)</span>
                   <span class="text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold">Instant Setup</span>
                 </h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Self-service registration for private schools across Chitral, Booni, Drosh & KP.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Register any private or public school across Chitral for cloud administration.</p>
               </div>
 
-              <form id="schoolRegistrationForm" onsubmit="handleSchoolRegistration(event)" class="space-y-3.5 text-xs">
+              <form id="schoolRegistrationForm" onsubmit="handleSchoolRegistration(event)" class="space-y-3 text-xs">
+                
+                <!-- School Selection (from list or custom) -->
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Select School Name or Enter Custom *</label>
+                  <select id="regSchoolSelect" onchange="handleRegSchoolSelectChange(this.value)" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-semibold outline-none focus:ring-2 focus:ring-emerald-500 transition cursor-pointer mb-2">
+                    <option value="">-- Choose Existing Chitral School or Custom --</option>
+                    <option value="Muslim Model School Chitral">Muslim Model School Chitral</option>
+                    <option value="The Langlands School & College Chitral">The Langlands School & College Chitral</option>
+                    <option value="Aga Khan Higher Secondary School Seenlasht">Aga Khan Higher Secondary School Seenlasht</option>
+                    <option value="FC Public School Chitral">FC Public School Chitral</option>
+                    <option value="Pamir Valley Public School Booni">Pamir Valley Public School Booni</option>
+                    <option value="Hindukush Public School Drosh">Hindukush Public School Drosh</option>
+                    <option value="Al-Nasir Public School Garam Chashma">Al-Nasir Public School Garam Chashma</option>
+                    <option value="Edwards Model School Chitral">Edwards Model School Chitral</option>
+                    <option value="Terichmir Public School Torkhow">Terichmir Public School Torkhow</option>
+                    <option value="Government Centenary Model High School Chitral">Government Centenary Model High School Chitral</option>
+                    <option value="__CUSTOM__">✍️ + Type Custom School Name...</option>
+                  </select>
+
+                  <div id="customSchoolInputsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <input type="text" id="regSchoolName" placeholder="School Name (English) *" required class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                    </div>
+                    <div>
+                      <input type="text" id="regSchoolNameUrdu" dir="rtl" placeholder="اسکول کا نام (اردو)" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tehsil & Campus Location -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Tehsil / Region (تحصیل) *</label>
+                    <select id="regCampusCity" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-semibold outline-none focus:ring-2 focus:ring-emerald-500 transition cursor-pointer">
+                      <option value="Chitral Town">Chitral Town (چترال خاص)</option>
+                      <option value="Lower Chitral">Lower Chitral (لوئر چترال)</option>
+                      <option value="Drosh">Drosh (دروش)</option>
+                      <option value="Ayun">Ayun / Kalash (ایون و کالاش)</option>
+                      <option value="Garam Chashma">Garam Chashma (گرم چشمہ / لوٹ کوہ)</option>
+                      <option value="Booni">Booni (بونی اپر چترال)</option>
+                      <option value="Mastuj">Mastuj (مستوج)</option>
+                      <option value="Torkhow">Torkhow (تورکھو)</option>
+                      <option value="Mulkhow">Mulkhow (موڑکھو)</option>
+                      <option value="Shishi Koh">Shishi Koh (شیشی کوہ)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Campus Street Address</label>
+                    <input type="text" id="regAddress" placeholder="e.g. Main Road, Drosh" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                  </div>
+                </div>
+
+                <!-- Principal & Phone -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Principal / Incharge Name *</label>
+                    <input type="text" id="regPrincipalName" placeholder="e.g. Prof. Inayat Ullah" required class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                  </div>
+                  <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Official Mobile / WhatsApp *</label>
+                    <input type="tel" id="regPhone" placeholder="e.g. 03459821455" required class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                  </div>
+                </div>
+
+                <!-- Tuition & Heating -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">BISE Registration Code</label>
+                    <input type="text" id="regBiseCode" placeholder="e.g. BISE-CH-5012" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                  </div>
+                  <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Tuition Fee & Heating Levy (PKR)</label>
+                    <div class="grid grid-cols-2 gap-2">
+                      <input type="number" id="regMonthlyFee" value="3800" placeholder="Fee: 3800" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-2 py-1.5 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500">
+                      <input type="number" id="regHeatingLevy" value="800" placeholder="Heating: 800" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-2 py-1.5 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Admin Account Creation -->
+                <div class="p-3 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200 dark:border-emerald-800 space-y-2">
+                  <p class="font-extrabold text-emerald-900 dark:text-emerald-300 text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-shield text-emerald-600"></i> Master Administrator Account Credentials
+                  </p>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Admin Username *</label>
+                      <input type="text" id="regAdminUsername" placeholder="e.g. admin_mms" required class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                    </div>
+                    <div>
+                      <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Admin Password *</label>
+                      <input type="password" id="regAdminPassword" placeholder="Min. 6 characters" required class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Submit Registration -->
+                <button type="submit" id="btnRegisterSubmit" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2 text-sm">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <span>Register School Tenant & Launch ERP Workspace (اندراج مکمل کریں)</span>
+                </button>
+              </form>
+            </div>
                 
                 <!-- School Name & Urdu Name -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

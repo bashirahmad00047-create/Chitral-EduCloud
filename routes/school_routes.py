@@ -1,6 +1,17 @@
 from datetime import datetime
+import socket
 from flask import Blueprint, request, jsonify, session
 import database
+
+def get_lan_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
 
 school_bp = Blueprint('schools', __name__)
 
@@ -110,6 +121,7 @@ def get_bootstrap():
     return jsonify({
         'school': active_school,
         'schools': all_schools,
+        'lan_ip': get_lan_ip(),
         'kpis': {
             'total_students': total_students,
             'boys_count': boys_count,

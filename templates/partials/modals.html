@@ -220,31 +220,66 @@
     </div>
   </div>
 
-  <!-- MODAL: BAILEYS WHATSAPP QR LINKING -->
+  <!-- MODAL: BAILEYS WHATSAPP QR & 8-DIGIT PHONE PAIRING -->
   <div id="modalWhatsAppQr" class="fixed inset-0 bg-slate-900/70 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl text-center space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2.5">
         <div class="flex items-center gap-2">
-          <i class="fa-brands fa-whatsapp text-emerald-500 text-lg"></i>
-          <span class="font-extrabold text-sm text-slate-900 dark:text-white">Link School WhatsApp</span>
+          <i class="fa-brands fa-whatsapp text-emerald-500 text-xl"></i>
+          <span class="font-extrabold text-sm text-slate-900 dark:text-white">Link School WhatsApp (Baileys Gateway)</span>
         </div>
-        <button onclick="closeWhatsAppQrModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <button onclick="closeWhatsAppQrModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
-      <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-        Open WhatsApp on the school phone &gt; <strong>Linked Devices</strong> &gt; <strong>Link a Device</strong> and scan this QR code:
-      </p>
-
-      <div class="p-4 bg-white rounded-2xl border-2 border-emerald-500/30 flex flex-col items-center justify-center shadow-inner relative min-h-[210px]">
-        <div id="waModalQrCanvas" class="w-48 h-48 mx-auto flex items-center justify-center"></div>
-        <img id="waModalQrImg" src="" alt="WhatsApp Pairing QR Code" class="w-48 h-48 mx-auto rounded-lg hidden">
+      <!-- METHOD 1: AUTHENTIC BAILEYS QR CODE -->
+      <div class="space-y-1.5">
+        <p class="text-xs text-slate-700 dark:text-slate-200 font-bold flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-qrcode text-emerald-600"></i> Option 1: Scan Cryptographic WhatsApp Web QR
+        </p>
+        <p class="text-[11px] text-slate-400">
+          WhatsApp &gt; <strong>Linked Devices</strong> &gt; <strong>Link a Device</strong>:
+        </p>
+        <div class="p-3 bg-white rounded-2xl border-2 border-emerald-500/40 flex flex-col items-center justify-center shadow-inner relative min-h-[190px]">
+          <div id="waModalQrCanvas" class="w-44 h-44 mx-auto flex items-center justify-center"></div>
+          <img id="waModalQrImg" src="" alt="WhatsApp Pairing QR Code" class="w-44 h-44 mx-auto rounded-lg hidden">
+          <span class="text-[9px] text-slate-400 mt-1 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Auto-refreshing Baileys token every 3s</span>
+        </div>
       </div>
 
-      <div class="text-[11px] text-slate-400 flex items-center justify-center gap-1.5 font-medium">
+      <div class="relative flex items-center justify-center my-1">
+        <div class="border-t border-slate-200 dark:border-slate-700 w-full"></div>
+        <span class="bg-white dark:bg-slate-800 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">OR (ALTERNATIVE)</span>
+        <div class="border-t border-slate-200 dark:border-slate-700 w-full"></div>
+      </div>
+
+      <!-- METHOD 2: 8-DIGIT PHONE PAIRING CODE -->
+      <div class="p-3.5 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-200 dark:border-slate-600 space-y-2 text-left">
+        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+          <i class="fa-solid fa-mobile-screen text-teal-600"></i> Option 2: Link with Phone Number (8-Digit Code)
+        </p>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400">
+          Enter the school's WhatsApp phone number to generate an 8-digit link code:
+        </p>
+        <div class="flex items-center gap-2">
+          <input type="tel" id="waPairPhoneInput" placeholder="e.g. 03459821455" class="flex-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">
+          <button type="button" onclick="handleRequestWhatsAppPairCode()" id="btnGetPairCode" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shrink-0 flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-key"></i> <span>Get Code</span>
+          </button>
+        </div>
+
+        <!-- 8-Digit Pairing Code Display Box -->
+        <div id="waPairCodeResultBox" class="hidden mt-2 p-3 bg-emerald-100 dark:bg-emerald-950/80 rounded-xl border border-emerald-300 dark:border-emerald-700 text-center space-y-1">
+          <p class="text-[10px] uppercase font-bold tracking-wider text-emerald-800 dark:text-emerald-300">Your WhatsApp 8-Digit Pairing Code:</p>
+          <div id="waPairCodeText" class="text-2xl font-black font-mono tracking-widest text-emerald-700 dark:text-emerald-400 select-all">---- ----</div>
+          <p class="text-[10px] text-slate-500 dark:text-slate-400">Enter this code on your phone: <em>WhatsApp &gt; Linked Devices &gt; Link with phone number instead</em></p>
+        </div>
+      </div>
+
+      <div class="text-[11px] text-slate-400 flex items-center justify-between font-medium pt-1">
         <span id="waModalStateIndicator" class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold border border-emerald-300 flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> LIVE BAILEYS SOCKET QR
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> BAILEYS MULTI-TENANT
         </span>
-        <span class="text-slate-500">&middot; School: <strong id="waModalSchoolId" class="text-emerald-600">chitral-model</strong></span>
+        <span class="text-slate-500">School: <strong id="waModalSchoolId" class="text-emerald-600">chitral-model</strong></span>
       </div>
 
       <button onclick="closeWhatsAppQrModal()" class="w-full py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-xs transition">

@@ -63,6 +63,7 @@ async function loadSchoolData(schoolId, date = state.currentDate) {
 
     state.school = data.school || {};
     state.schools = data.schools || [];
+    state.lanIp = data.lan_ip || '10.154.203.239';
     state.kpis = data.kpis || {};
     state.students = data.students || [];
     state.challans = data.challans || [];
@@ -534,6 +535,55 @@ function togglePasswordVisibility(inputId, iconId) {
       icon.classList.remove('fa-eye-slash');
       icon.classList.add('fa-eye');
     }
+  }
+}
+
+function fillQuickLogin(schoolId, role, username, password) {
+  const schoolSelect = document.getElementById('gatewaySchoolSelect');
+  if (schoolSelect) schoolSelect.value = schoolId;
+
+  const roleSelect = document.getElementById('loginRoleSelect');
+  if (roleSelect) roleSelect.value = role;
+
+  const userInp = document.getElementById('loginUsername');
+  if (userInp) userInp.value = username;
+
+  const passInp = document.getElementById('loginPassword');
+  if (passInp) passInp.value = password;
+
+  showToast(`Autofilled credentials: ${username} (${schoolId})`);
+}
+
+function handleRegSchoolSelectChange(val) {
+  const nameInp = document.getElementById('regSchoolName');
+  const citySelect = document.getElementById('regCampusCity');
+  const userInp = document.getElementById('regAdminUsername');
+
+  if (!val || val === '__CUSTOM__') {
+    if (nameInp) {
+      nameInp.value = '';
+      nameInp.focus();
+    }
+    return;
+  }
+
+  if (nameInp) nameInp.value = val;
+
+  // Auto-detect Tehsil from school name
+  if (citySelect) {
+    if (val.includes('Booni')) citySelect.value = 'Booni';
+    else if (val.includes('Drosh')) citySelect.value = 'Drosh';
+    else if (val.includes('Mastuj')) citySelect.value = 'Mastuj';
+    else if (val.includes('Garam Chashma')) citySelect.value = 'Garam Chashma';
+    else if (val.includes('Torkhow')) citySelect.value = 'Torkhow';
+    else if (val.includes('Mulkhow')) citySelect.value = 'Mulkhow';
+    else citySelect.value = 'Chitral Town';
+  }
+
+  // Suggest clean admin username
+  if (userInp) {
+    const slug = val.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').slice(0, 18);
+    userInp.value = `admin_${slug}`;
   }
 }
 
@@ -1024,6 +1074,8 @@ window.toggleTheme = toggleTheme;
 window.toggleMobileSidebar = toggleMobileSidebar;
 window.handleUserLogout = handleUserLogout;
 window.loginAsRole = loginAsRole;
+window.fillQuickLogin = fillQuickLogin;
+window.handleRegSchoolSelectChange = handleRegSchoolSelectChange;
 window.handleCredentialsLogin = handleCredentialsLogin;
 window.handleSchoolRegistration = handleSchoolRegistration;
 window.handleDemoLogin = handleDemoLogin;

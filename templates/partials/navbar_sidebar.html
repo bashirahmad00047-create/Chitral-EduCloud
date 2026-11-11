@@ -83,9 +83,10 @@
           </div>
         </div>
 
-        <!-- Logout Button -->
-        <button onclick="handleUserLogout()" class="p-2 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Sign Out">
-          <i class="fa-solid fa-power-off text-sm"></i>
+        <!-- Prominent Logout / Switch Account Button -->
+        <button onclick="handleUserLogout()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-bold transition shadow-2xs group" title="Sign Out / Switch School Account">
+          <i class="fa-solid fa-power-off text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform"></i>
+          <span class="hidden sm:inline">Logout / Switch Account</span>
         </button>
       </div>
 
