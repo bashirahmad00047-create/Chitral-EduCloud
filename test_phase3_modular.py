@@ -59,45 +59,54 @@ def run_phase3_tests():
     print("  --> PASSED: Session active, cleared upon logout.")
     passed += 1
 
-    # 5. Student Roster CSV Export
-    print("\n[TEST 5] Testing Student SIS CSV Export (/api/students/export/csv)...")
-    res_csv = client.get('/api/students/export/csv?school_id=chitral-model')
+    # 5. Student Roster CSV Export (both endpoint styles)
+    print("\n[TEST 5] Testing Student SIS CSV Export (/api/export/students.csv & /api/students/export/csv)...")
+    res_csv = client.get('/api/export/students.csv?school_id=chitral-model')
     assert res_csv.status_code == 200
     assert 'text/csv' in res_csv.content_type
     content = res_csv.get_data(as_text=True)
     assert content.startswith('\ufeff')  # UTF-8 BOM
     assert 'STUDENT ROSTER' in content
     assert 'Aliyan Ali' in content
+    # Also verify backward compatible route
+    res_csv2 = client.get('/api/students/export/csv?school_id=chitral-model')
+    assert res_csv2.status_code == 200
     print("  --> PASSED: Student Roster CSV generated with UTF-8 BOM.")
     passed += 1
 
     # 6. Attendance CSV Export
-    print("\n[TEST 6] Testing Attendance CSV Export (/api/attendance/export/csv)...")
-    res_att = client.get('/api/attendance/export/csv?school_id=chitral-model&date=2026-10-12')
+    print("\n[TEST 6] Testing Attendance CSV Export (/api/export/attendance.csv & /api/attendance/export/csv)...")
+    res_att = client.get('/api/export/attendance.csv?school_id=chitral-model&date=2026-10-12')
     assert res_att.status_code == 200
     assert 'text/csv' in res_att.content_type
     att_content = res_att.get_data(as_text=True)
     assert 'ATTENDANCE REGISTER' in att_content
+    res_att2 = client.get('/api/attendance/export/csv?school_id=chitral-model&date=2026-10-12')
+    assert res_att2.status_code == 200
     print("  --> PASSED: Attendance CSV generated with date headers.")
     passed += 1
 
     # 7. Fee Ledger CSV Export
-    print("\n[TEST 7] Testing Fee Ledger CSV Export (/api/fees/export/csv)...")
-    res_fee = client.get('/api/fees/export/csv?school_id=chitral-model')
+    print("\n[TEST 7] Testing Fee Ledger CSV Export (/api/export/fees.csv & /api/fees/export/csv)...")
+    res_fee = client.get('/api/export/fees.csv?school_id=chitral-model')
     assert res_fee.status_code == 200
     assert 'text/csv' in res_fee.content_type
     fee_content = res_fee.get_data(as_text=True)
     assert 'FEE COLLECTION & ARREARS' in fee_content
+    res_fee2 = client.get('/api/fees/export/csv?school_id=chitral-model')
+    assert res_fee2.status_code == 200
     print("  --> PASSED: Fee Ledger CSV generated.")
     passed += 1
 
     # 8. Exam Merit List CSV Export
-    print("\n[TEST 8] Testing Exam Merit CSV Export (/api/exams/export/csv)...")
-    res_exam = client.get('/api/exams/export/csv?school_id=chitral-model&term=First+Term')
+    print("\n[TEST 8] Testing Exam Merit CSV Export (/api/export/exams.csv & /api/exams/export/csv)...")
+    res_exam = client.get('/api/export/exams.csv?school_id=chitral-model&term=First+Term')
     assert res_exam.status_code == 200
     assert 'text/csv' in res_exam.content_type
     exam_content = res_exam.get_data(as_text=True)
     assert 'EXAMINATION MERIT & MARKS' in exam_content
+    res_exam2 = client.get('/api/exams/export/csv?school_id=chitral-model&term=First+Term')
+    assert res_exam2.status_code == 200
     print("  --> PASSED: Exam Merit List CSV generated.")
     passed += 1
 

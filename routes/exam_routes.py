@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 import database
-from utils.exports import generate_exam_marks_csv, create_csv_response
 
 exam_bp = Blueprint('exams', __name__, url_prefix='/api/exams')
 
@@ -52,28 +51,3 @@ def save_exam_marks():
         'percentage': percentage,
         'grade': grade
     })
-
-@exam_bp.route('/export/csv', methods=['GET'])
-def export_exams():
-    school_id = request.args.get('school_id', 'chitral-model')
-    term = request.args.get('term', 'First Term')
-
-    conn = database.get_db()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT name FROM schools WHERE id = ?", (school_id,))
-    school_name = cursor.fetchone()
-    school_title = school_name['name'] if school_name else "Chitral School"
-
-    cursor.execute('''
-    SELECT em.*, s.full_name as student_name, s.roll_no, s.class_grade, s.section
-    FROM exam_marks em
-    JOIN students s ON em.student_id = s.id
-    WHERE em.school_id = ? AND em.exam_term = ?
-    ORDER BY em.percentage DESC
-    ''', (school_id, term))
-    marks_list = [dict(r) for r in cursor.fetchall()]
-    conn.close()
-
-    csv_content = generate_exam_marks_csv(marks_list, term, school_title)
-    return create_csv_response(csv_content, f"{school_id}_exam_merit_{term.replace(' ', '_')}.csv")

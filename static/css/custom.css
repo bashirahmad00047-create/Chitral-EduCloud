@@ -1,0 +1,136 @@
+/* Chitral EduCloud ERP - Custom Print Isolation & RTL Typography */
+
+/* Dedicated Print Stylesheet */
+@media print {
+  /* Universally hide chrome UI, headers, and navigation */
+  header,
+  aside,
+  nav,
+  #bottomNav,
+  .no-print,
+  button,
+  .modal-backdrop,
+  .toast-container,
+  #sidebarBackdrop {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  main,
+  #mainContent {
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* 1. Print Mode: Student PVC ID Card */
+  body.printing-id-card .screen-view:not(#screen-idcard),
+  body.printing-id-card #screen-idcard > div:first-child {
+    display: none !important;
+  }
+
+  body.printing-id-card .id-card-print-target {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 32px !important;
+    padding: 20px !important;
+    background: transparent !important;
+    border: none !important;
+  }
+
+  body.printing-id-card .id-card-pvc {
+    box-shadow: none !important;
+    border: 1.5px solid #065f46 !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* 2. Print Mode: Official DMC Report Card */
+  body.printing-dmc .screen-view:not(#screen-dmc),
+  body.printing-dmc #screen-dmc > div:first-child {
+    display: none !important;
+  }
+
+  body.printing-dmc .dmc-print-target {
+    display: block !important;
+    margin: 0 auto !important;
+    max-width: 100% !important;
+    border: 3px double #0f172a !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* 3. Print Mode: 80mm Thermal POS Receipt */
+  body.printing-receipt .screen-view,
+  body.printing-receipt header,
+  body.printing-receipt aside {
+    display: none !important;
+  }
+
+  body.printing-receipt #modalThermalReceipt {
+    display: block !important;
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  body.printing-receipt #modalThermalReceipt > div {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    max-width: 80mm !important;
+    margin: 0 auto !important;
+  }
+
+  body.printing-receipt .thermal-receipt {
+    width: 80mm !important;
+    border: 1px dashed #000 !important;
+    margin: 0 auto !important;
+  }
+
+  /* 4. Print Mode: 3-Copy Bank Challan */
+  body.printing-bank-challan .screen-view,
+  body.printing-bank-challan header,
+  body.printing-bank-challan aside {
+    display: none !important;
+  }
+
+  body.printing-bank-challan #modalBankChallan {
+    display: block !important;
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  body.printing-bank-challan #modalBankChallan > div {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
+/* RTL Typography enhancements */
+[dir="rtl"] {
+  font-family: 'Noto Nastaliq Urdu', 'Noto Sans Arabic', serif;
+  text-align: right;
+}
+
+[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}

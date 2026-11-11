@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 import database
-from utils.exports import generate_attendance_csv, create_csv_response
 
 attendance_bp = Blueprint('attendance', __name__, url_prefix='/api/attendance')
 
@@ -40,31 +39,27 @@ def save_attendance():
         'absent_count': absent_count
     })
 
-@attendance_bp.route('/export/csv', methods=['GET'])
-def export_attendance():
+@attendance_bp.route('/by-date', methods=['GET'])
+def get_attendance_by_date():
     school_id = request.args.get('school_id', 'chitral-model')
     date_str = request.args.get('date', '2026-10-12')
 
     conn = database.get_db()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT name FROM schools WHERE id = ?", (school_id,))
-    school_name = cursor.fetchone()
-    school_title = school_name['name'] if school_name else "Chitral School"
-
     cursor.execute('''
-    SELECT 
-        s.roll_no, s.full_name as student_name, s.father_name, s.class_grade, s.section,
-        COALESCE(a.status, 'P') as status,
-        COALESCE(a.arrival_time, '08:14 AM') as arrival_time,
-        COALESCE(a.marked_by, 'Class Teacher') as marked_by
-    FROM students s
-    LEFT JOIN attendance a ON s.id = a.student_id AND a.date = ?
-    WHERE s.school_id = ?
+    SELECT a.*, s.full_name as student_name, s.roll_no, s.class_grade, s.section
+    FROM attendance a
+    JOIN students s ON a.student_id = s.id
+    WHERE a.school_id = ? AND a.date = ?
     ORDER BY CAST(s.roll_no AS INTEGER) ASC
-    ''', (date_str, school_id))
+    ''', (school_id, date_str))
     records = [dict(r) for r in cursor.fetchall()]
     conn.close()
 
-    csv_content = generate_attendance_csv(records, date_str, school_title)
-    return create_csv_response(csv_content, f"{school_id}_attendance_{date_str}.csv")
+    return jsonify({
+        'date': date_str,
+        'school_id': school_id,
+        'records': records,
+        'count': len(records)
+    })

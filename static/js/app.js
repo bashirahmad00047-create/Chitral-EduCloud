@@ -686,26 +686,38 @@ function resetStudentFilters() {
 }
 
 function exportStudentsCsv() {
-  window.open(`/api/students/export/csv?school_id=${encodeURIComponent(state.currentSchoolId)}`, '_blank');
+  const url = typeof api !== 'undefined' && api.getStudentsExportUrl 
+    ? api.getStudentsExportUrl(state.currentSchoolId) 
+    : `/api/export/students.csv?school_id=${encodeURIComponent(state.currentSchoolId)}`;
+  window.open(url, '_blank');
   showToast("Downloading Student SIS Roster (UTF-8 Excel CSV)...");
 }
 
 function exportAttendanceCsv() {
   const dateInput = document.getElementById('attDatePicker');
   const dateStr = dateInput ? dateInput.value : state.currentDate;
-  window.open(`/api/attendance/export/csv?school_id=${encodeURIComponent(state.currentSchoolId)}&date=${encodeURIComponent(dateStr)}`, '_blank');
+  const url = typeof api !== 'undefined' && api.getAttendanceExportUrl 
+    ? api.getAttendanceExportUrl(state.currentSchoolId, dateStr) 
+    : `/api/export/attendance.csv?school_id=${encodeURIComponent(state.currentSchoolId)}&date=${encodeURIComponent(dateStr)}`;
+  window.open(url, '_blank');
   showToast("Downloading Daily Attendance Register (UTF-8 Excel CSV)...");
 }
 
 function exportFeeLedgerCsv() {
-  window.open(`/api/fees/export/csv?school_id=${encodeURIComponent(state.currentSchoolId)}`, '_blank');
+  const url = typeof api !== 'undefined' && api.getFeesExportUrl 
+    ? api.getFeesExportUrl(state.currentSchoolId) 
+    : `/api/export/fees.csv?school_id=${encodeURIComponent(state.currentSchoolId)}`;
+  window.open(url, '_blank');
   showToast("Downloading Fee Collection Ledger (UTF-8 Excel CSV)...");
 }
 
 function exportExamMeritCsv() {
   const termSelect = document.getElementById('examTermSelect');
   const term = termSelect ? termSelect.value : "First Term";
-  window.open(`/api/exams/export/csv?school_id=${encodeURIComponent(state.currentSchoolId)}&term=${encodeURIComponent(term)}`, '_blank');
+  const url = typeof api !== 'undefined' && api.getExamsExportUrl 
+    ? api.getExamsExportUrl(state.currentSchoolId, term) 
+    : `/api/export/exams.csv?school_id=${encodeURIComponent(state.currentSchoolId)}&term=${encodeURIComponent(term)}`;
+  window.open(url, '_blank');
   showToast("Downloading Exam Merit List (UTF-8 Excel CSV)...");
 }
 
@@ -1426,6 +1438,14 @@ function closeThermalReceiptModal() {
   document.getElementById('modalThermalReceipt').classList.add('hidden');
 }
 
+function printThermalSlip() {
+  document.body.classList.add('printing-receipt');
+  window.print();
+  setTimeout(() => {
+    document.body.classList.remove('printing-receipt');
+  }, 1000);
+}
+
 // 3-Copy Bank Challan Modal
 function print3CopyBankChallan(studentId) {
   const stu = state.students.find(s => s.id === studentId) || state.students[0];
@@ -1475,6 +1495,14 @@ function print3CopyBankChallan(studentId) {
 
 function closeBankChallanModal() {
   document.getElementById('modalBankChallan').classList.add('hidden');
+}
+
+function print3CopyChallanDoc() {
+  document.body.classList.add('printing-bank-challan');
+  window.print();
+  setTimeout(() => {
+    document.body.classList.remove('printing-bank-challan');
+  }, 1000);
 }
 
 // ==================== SCREEN 10: EXAMS & RESULTS MANAGEMENT (REST API) ====================

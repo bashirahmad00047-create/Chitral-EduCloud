@@ -45,6 +45,19 @@ def login():
         }
     })
 
+@auth_bp.route('/session', methods=['GET'])
+@auth_bp.route('/me', methods=['GET'])
+def get_session():
+    user = get_current_user_session()
+    if not user:
+        return jsonify({'authenticated': False, 'user': None})
+    return jsonify({'authenticated': True, 'user': user})
+
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    logout_user_session()
+    return jsonify({'success': True, 'message': 'Logged out successfully.'})
+
 @auth_bp.route('/demo-login', methods=['POST'])
 def demo_login():
     data = request.get_json() or {}
@@ -56,7 +69,6 @@ def demo_login():
     cursor.execute("SELECT * FROM users WHERE school_id = ? AND role = ? LIMIT 1", (school_id, role))
     user_row = cursor.fetchone()
 
-    # If no specific user found for this school, grab first user with this role
     if not user_row:
         cursor.execute("SELECT * FROM users WHERE role = ? LIMIT 1", (role,))
         user_row = cursor.fetchone()
@@ -81,15 +93,3 @@ def demo_login():
             'linked_student_id': user.get('linked_student_id')
         }
     })
-
-@auth_bp.route('/me', methods=['GET'])
-def get_me():
-    user = get_current_user_session()
-    if not user:
-        return jsonify({'authenticated': False, 'user': None})
-    return jsonify({'authenticated': True, 'user': user})
-
-@auth_bp.route('/logout', methods=['POST'])
-def logout():
-    logout_user_session()
-    return jsonify({'success': True, 'message': 'Logged out successfully.'})
