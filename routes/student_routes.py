@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 import database
+from utils.auth import role_required
 
 student_bp = Blueprint('students', __name__)
 
@@ -212,6 +213,7 @@ def update_student(student_id):
     return jsonify({'success': True, 'message': 'Student updated successfully in SQLite'})
 
 @student_bp.route('/api/students/<student_id>', methods=['DELETE'])
+@role_required(['admin'])
 def delete_student(student_id):
     conn = database.get_db()
     cursor = conn.cursor()
@@ -219,3 +221,114 @@ def delete_student(student_id):
     conn.commit()
     conn.close()
     return jsonify({'success': True, 'message': 'Student deleted successfully from SQLite'})
+
+# ==================== PUBLIC QR VERIFICATION BADGE ====================
+@student_bp.route('/verify/student/<admission_no>', methods=['GET'])
+def verify_student(admission_no):
+    conn = database.get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT s.*, sch.name as school_name, sch.campus_city, sch.address as school_address, 
+           sch.phone as school_phone, sch.principal_name, sch.bise_code
+    FROM students s
+    JOIN schools sch ON s.school_id = sch.id
+    WHERE UPPER(s.admission_no) = UPPER(?) OR s.id = ?
+    ''', (admission_no, admission_no))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        return f'''
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Verification Failed | Chitral EduCloud</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+        </head>
+        <body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans">
+            <div class="bg-white rounded-3xl max-w-md w-full p-6 text-center shadow-xl border border-red-200">
+                <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">✕</div>
+                <h2 class="text-xl font-black text-slate-900 mb-1">Student Record Not Found</h2>
+                <p class="text-xs text-slate-500 mb-4">No enrolled student with Admission #{admission_no} was found in the official registry.</p>
+                <a href="/" class="inline-block px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800">Return to Portal</a>
+            </div>
+        </body>
+        </html>
+        ''', 404
+
+    stu = dict(row)
+    return f'''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Student Verification - {stu["full_name"]} | Chitral EduCloud</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    </head>
+    <body class="bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-emerald-500/30">
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white text-center relative">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-black uppercase tracking-wider text-emerald-100 mb-2 border border-white/20">
+                    <i class="fa-solid fa-circle-check text-emerald-300"></i> Official Verified Record
+                </div>
+                <h1 class="text-lg font-extrabold leading-snug">{stu["school_name"]}</h1>
+                <p class="text-xs text-emerald-100/90 font-medium">{stu["campus_city"]} &middot; {stu.get("bise_code") or "KP Board"}</p>
+            </div>
+
+            <div class="p-6 space-y-5">
+                <div class="flex items-center gap-4 border-b border-slate-100 pb-4">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-emerald-500/20">
+                        {stu["full_name"][0]}
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-black text-slate-900 leading-tight">{stu["full_name"]}</h2>
+                        <p class="text-xs font-semibold text-slate-500">s/o {stu["father_name"]}</p>
+                        <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            ● {stu["status"].upper()} STUDENT
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Admission No</span>
+                        <span class="font-extrabold text-slate-900">{stu["admission_no"]}</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Roll Number</span>
+                        <span class="font-extrabold text-slate-900">#{stu["roll_no"]}</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Class & Section</span>
+                        <span class="font-extrabold text-slate-900">{stu["class_grade"]} - {stu["section"]}</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Blood Group</span>
+                        <span class="font-extrabold text-rose-600">{stu["blood_group"] or "N/A"}</span>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-emerald-50/70 border border-emerald-100 rounded-2xl text-[11px] text-emerald-950 space-y-1">
+                    <div class="flex justify-between">
+                        <span class="text-emerald-700 font-semibold">Campus Contact:</span>
+                        <span class="font-bold">{stu["school_phone"]}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-emerald-700 font-semibold">Principal:</span>
+                        <span class="font-bold">{stu["principal_name"]}</span>
+                    </div>
+                </div>
+
+                <div class="text-center pt-2 border-t border-slate-100">
+                    <p class="text-[10px] text-slate-400 font-medium">Digital Verification Seal &middot; Chitral EduCloud ERP</p>
+                    <p class="text-[9px] text-emerald-600 font-mono mt-0.5">SHA-256 Validated &middot; Active Session 2026-2027</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''

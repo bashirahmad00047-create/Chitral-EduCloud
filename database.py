@@ -168,6 +168,21 @@ def init_db():
 
     conn.commit()
 
+    # Ensure default Phase 4 seed users exist
+    seed_users = [
+        ("chitral-model", "admin", generate_password_hash("admin123"), "admin", "Prof. Rehmat Ullah Baig", None),
+        ("chitral-model", "teacher", generate_password_hash("teach123"), "teacher", "Sir Farooq Azam", None),
+        ("chitral-model", "parent", generate_password_hash("parent123"), "parent", "Mir Wazir Khan", "STU-1001"),
+        ("chitral-model", "admin_cmc", generate_password_hash("admin123"), "admin", "Prof. Rehmat Ullah Baig", None),
+        ("chitral-model", "teacher_farooq", generate_password_hash("teach123"), "teacher", "Sir Farooq Azam", None),
+        ("chitral-model", "parent_wazir", generate_password_hash("parent123"), "parent", "Mir Wazir Khan", "STU-1001"),
+    ]
+    cursor.executemany('''
+    INSERT OR IGNORE INTO users (school_id, username, password_hash, role, full_name, linked_student_id)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ''', seed_users)
+    conn.commit()
+
     # Check if empty -> Seed DB
     cursor.execute("SELECT COUNT(*) FROM schools")
     count = cursor.fetchone()[0]
@@ -205,6 +220,9 @@ def seed_db(conn):
 
     # Seed Users
     users_data = [
+        ("chitral-model", "admin", generate_password_hash("admin123"), "admin", "Prof. Rehmat Ullah Baig", None),
+        ("chitral-model", "teacher", generate_password_hash("teach123"), "teacher", "Sir Farooq Azam", None),
+        ("chitral-model", "parent", generate_password_hash("parent123"), "parent", "Mir Wazir Khan", "STU-1001"),
         ("chitral-model", "admin_cmc", generate_password_hash("admin123"), "admin", "Prof. Rehmat Ullah Baig", None),
         ("chitral-model", "teacher_farooq", generate_password_hash("teacher123"), "teacher", "Sir Farooq Azam", None),
         ("chitral-model", "parent_wazir", generate_password_hash("parent123"), "parent", "Mir Wazir Khan", "STU-1001"),
@@ -212,7 +230,7 @@ def seed_db(conn):
         ("hindukush", "admin_drosh", generate_password_hash("admin123"), "admin", "Madam Gulrukh Sultana", None)
     ]
     cursor.executemany('''
-    INSERT INTO users (school_id, username, password_hash, role, full_name, linked_student_id)
+    INSERT OR IGNORE INTO users (school_id, username, password_hash, role, full_name, linked_student_id)
     VALUES (?, ?, ?, ?, ?, ?)
     ''', users_data)
 

@@ -1,0 +1,252 @@
+      <!-- SCREEN 1: LOGIN & AUTHENTICATION VIEW -->
+      <section id="screen-login" class="screen-view hidden max-w-4xl mx-auto py-6">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 sm:p-10 shadow-xl">
+          <div class="text-center max-w-xl mx-auto mb-8">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg shadow-emerald-600/30">
+              <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white" data-i18n="loginTitle">Welcome to Chitral EduCloud</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-2" data-i18n="loginSubtitle">Commercial Multi-Tenant School ERP tailored for Chitral Schools</p>
+          </div>
+
+          <!-- School Tenant Card Selector -->
+          <div class="mb-8">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3" data-i18n="selectTenant">Select School Tenant</label>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="loginSchoolTenantCards">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Interactive Credentials Sign In Form -->
+          <div class="mb-8 p-5 bg-slate-50 dark:bg-slate-700/40 rounded-2xl border border-slate-200 dark:border-slate-700">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-lock text-emerald-600"></i> Authenticate with System Credentials
+            </h3>
+            <form id="credentialsLoginForm" onsubmit="handleCredentialsLogin(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs items-end">
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Username</label>
+                <input type="text" id="loginUsername" placeholder="e.g. admin_cmc" required class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">
+              </div>
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Password</label>
+                <input type="password" id="loginPassword" placeholder="e.g. admin123" required class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">
+              </div>
+              <div>
+                <button type="submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In (Session Auth)
+                </button>
+              </div>
+            </form>
+            <div class="flex flex-wrap items-center justify-between text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+              <span>Demo Logins: <strong>admin_cmc</strong>, <strong>teacher_farooq</strong>, <strong>parent_wazir</strong></span>
+              <span>Default Password: <strong>admin123</strong> / <strong>teacher123</strong> / <strong>parent123</strong></span>
+            </div>
+          </div>
+
+          <!-- Role Demo Cards -->
+          <div class="mb-8">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3" data-i18n="selectRoleToExplore">Select Role Preview</label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div onclick="loginAsRole('admin')" class="p-4 rounded-2xl border-2 border-emerald-500/30 hover:border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 cursor-pointer transition flex flex-col items-center text-center">
+                <div class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xl mb-2">
+                  <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h4 class="font-bold text-sm text-slate-900 dark:text-white" data-i18n="roleAdmin">School Principal</h4>
+                <p class="text-[11px] text-slate-500 mt-1">Full ERP control, financials, fees, DMC & BISE reporting</p>
+                <button class="mt-3 px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-xs">Launch Principal Portal</button>
+              </div>
+
+              <div onclick="loginAsRole('teacher')" class="p-4 rounded-2xl border-2 border-teal-500/30 hover:border-teal-500 bg-teal-50/50 dark:bg-teal-950/20 cursor-pointer transition flex flex-col items-center text-center">
+                <div class="w-12 h-12 rounded-xl bg-teal-600 text-white flex items-center justify-center text-xl mb-2">
+                  <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+                <h4 class="font-bold text-sm text-slate-900 dark:text-white" data-i18n="roleTeacher">Class Teacher</h4>
+                <p class="text-[11px] text-slate-500 mt-1">Attendance sheet, homework diary, marks entry</p>
+                <button class="mt-3 px-3 py-1 bg-teal-600 text-white rounded-lg text-xs font-bold shadow-xs">Launch Teacher Portal</button>
+              </div>
+
+              <div onclick="loginAsRole('parent')" class="p-4 rounded-2xl border-2 border-indigo-500/30 hover:border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20 cursor-pointer transition flex flex-col items-center text-center">
+                <div class="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xl mb-2">
+                  <i class="fa-solid fa-mobile-screen-button"></i>
+                </div>
+                <h4 class="font-bold text-sm text-slate-900 dark:text-white" data-i18n="roleParent">Parent / Guardian</h4>
+                <p class="text-[11px] text-slate-500 mt-1">Attendance arrival alert, pending fee challan, report card</p>
+                <button class="mt-3 px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-bold shadow-xs">Launch Parent Portal</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: SCHOOL ADMIN DASHBOARD -->
+      <section id="screen-dashboard" class="screen-view space-y-6">
+        <!-- Campus Banner & Quick Title -->
+        <div class="bg-gradient-to-r from-emerald-800 via-teal-800 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+          <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30" id="dashAcademicYear">Academic Session 2026-2027</span>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/10 text-white" id="dashCampusBadge">Chitral Town</span>
+              </div>
+              <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight" id="dashSchoolHeading">Chitral Model College & School</h1>
+              <p class="text-sm text-emerald-100/80 mt-1" data-i18n="adminSubtitle">Live academic & financial summary for your campus today.</p>
+            </div>
+            <!-- Quick Actions Group -->
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="openAddStudentModal()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-2 shadow-lg transition">
+                <i class="fa-solid fa-user-plus"></i> <span data-i18n="btnQuickAdmission">+ New Admission</span>
+              </button>
+              <button onclick="navigateTo('screen-attendance')" class="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-xs flex items-center gap-2 border border-white/20 backdrop-blur-sm transition">
+                <i class="fa-solid fa-clipboard-check"></i> <span data-i18n="btnMarkAttendance">Take Attendance</span>
+              </button>
+              <button onclick="navigateTo('screen-alerts')" class="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-xs flex items-center gap-2 border border-white/20 backdrop-blur-sm transition">
+                <i class="fa-solid fa-bullhorn"></i> <span data-i18n="btnBroadcastAlert">Send Alert</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 KPI CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- KPI 1: Total Students -->
+          <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-i18n="kpiTotalStudents">Total Enrolled Students</p>
+                <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1" id="kpiValTotalStudents">684</h3>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-users"></i>
+              </div>
+            </div>
+            <div class="mt-4 flex items-center gap-4 text-xs font-medium text-slate-500 border-t border-slate-100 dark:border-slate-700/60 pt-3">
+              <span><i class="fa-solid fa-mars text-blue-500 mr-1"></i> <strong class="text-slate-700 dark:text-slate-200" id="kpiValBoys">392</strong> Boys</span>
+              <span><i class="fa-solid fa-venus text-pink-500 mr-1"></i> <strong class="text-slate-700 dark:text-slate-200" id="kpiValGirls">292</strong> Girls</span>
+            </div>
+          </div>
+
+          <!-- KPI 2: Today Attendance Rate -->
+          <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-i18n="kpiTodayAttendance">Today Attendance Rate</p>
+                <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1" id="kpiValAttendancePct">94.6%</h3>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950 text-teal-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-clipboard-user"></i>
+              </div>
+            </div>
+            <div class="mt-4 flex items-center gap-4 text-xs font-medium text-slate-500 border-t border-slate-100 dark:border-slate-700/60 pt-3">
+              <span class="text-emerald-600 font-semibold"><i class="fa-solid fa-check mr-1"></i><span id="kpiValPresent">647</span> Present</span>
+              <span class="text-rose-500 font-semibold"><i class="fa-solid fa-xmark mr-1"></i><span id="kpiValAbsent">28</span> Absent</span>
+              <span class="text-amber-500 font-semibold"><span id="kpiValLeave">9</span> Leave</span>
+            </div>
+          </div>
+
+          <!-- KPI 3: Monthly Fee Collection -->
+          <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-i18n="kpiMonthlyFee">Monthly Fee Collection</p>
+                <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1" id="kpiValFeeCollected">PKR 1,915,200</h3>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-money-bill-wave"></i>
+              </div>
+            </div>
+            <div class="mt-4 flex items-center justify-between text-xs font-medium text-slate-500 border-t border-slate-100 dark:border-slate-700/60 pt-3">
+              <span data-i18n="kpiCollectedTarget">Collected of Target</span>
+              <span class="font-bold text-emerald-600" id="kpiValFeeTargetProgress">80.0%</span>
+            </div>
+          </div>
+
+          <!-- KPI 4: Pending Dues & Arrears -->
+          <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-i18n="kpiPendingDues">Total Outstanding Dues</p>
+                <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1" id="kpiValPendingDues">PKR 478,800</h3>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950 text-rose-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+              </div>
+            </div>
+            <div class="mt-4 flex items-center justify-between text-xs font-medium text-slate-500 border-t border-slate-100 dark:border-slate-700/60 pt-3">
+              <span><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i> <strong class="text-slate-700 dark:text-slate-200" id="kpiValDefaulters">42</strong> Defaulters</span>
+              <button onclick="navigateTo('screen-fees')" class="text-emerald-600 font-bold hover:underline">View Dues &rarr;</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHARTS SECTION: 2 COLUMNS -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Fee Collection Trends Chart -->
+          <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="font-bold text-slate-900 dark:text-white text-sm" data-i18n="chartFeeTitle">Fee Collection Trends (PKR)</h3>
+                <p class="text-xs text-slate-500">6-Month historic collection vs target</p>
+              </div>
+              <span class="text-xs bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-md font-semibold text-slate-600 dark:text-slate-300">2026 Session</span>
+            </div>
+            <div class="h-64 relative">
+              <canvas id="feeCollectionChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Attendance Distribution Chart -->
+          <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="font-bold text-slate-900 dark:text-white text-sm" data-i18n="chartAttendanceTitle">Today's Attendance by Grade</h3>
+                <p class="text-xs text-slate-500">Distribution across senior grades</p>
+              </div>
+            </div>
+            <div class="h-64 relative flex items-center justify-center">
+              <canvas id="attendanceBreakdownChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENT ACTIVITY & QUICK ACTIONS ROW -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Recent Activity Feed -->
+          <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-slate-900 dark:text-white text-sm" data-i18n="recentActivityTitle">Live Real-Time Activity Feed</h3>
+              <span class="text-xs text-emerald-600 font-bold"><i class="fa-solid fa-rotate-right mr-1"></i> Live</span>
+            </div>
+            <div class="space-y-3" id="adminActivityFeed">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Chitral Campus Quick Info Box -->
+          <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 shadow-sm border border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <i class="fa-solid fa-mountain"></i> Chitral Regional Hub
+              </div>
+              <h4 class="font-bold text-base text-white" id="quickBoxSchoolName">Chitral Model College & School</h4>
+              <p class="text-xs text-slate-300 mt-2" id="quickBoxCampusAddress">Ataliq Bazaar Road, Chitral Town</p>
+              <div class="mt-4 space-y-2 text-xs text-slate-300">
+                <div class="flex justify-between">
+                  <span>Affiliation:</span> <strong class="text-white" id="quickBoxAffiliation">BISE Peshawar #CMC-4819</strong>
+                </div>
+                <div class="flex justify-between">
+                  <span>Principal:</span> <strong class="text-white" id="quickBoxPrincipal">Prof. Rehmat Ullah Baig</strong>
+                </div>
+                <div class="flex justify-between">
+                  <span>Phone:</span> <strong class="text-white" id="quickBoxPhone">+92 (0943) 412580</strong>
+                </div>
+              </div>
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-700/80 flex items-center justify-between">
+              <button onclick="navigateTo('screen-settings')" class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1">
+                Configure School Settings <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+

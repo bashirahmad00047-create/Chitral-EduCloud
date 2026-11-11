@@ -1,0 +1,240 @@
+  <!-- TOP HEADER BAR -->
+  <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-800/90 glass-header border-b border-slate-200 dark:border-slate-700 px-4 py-2.5 flex items-center justify-between shadow-sm">
+    <div class="flex items-center gap-3">
+      <!-- Mobile Sidebar Toggle Button -->
+      <button id="sidebarToggleBtn" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none lg:hidden" aria-label="Toggle Sidebar">
+        <i class="fa-solid fa-bars text-lg"></i>
+      </button>
+
+      <!-- Brand Logo & Tenant Badge -->
+      <div class="flex items-center gap-2.5 cursor-pointer" onclick="navigateTo('screen-dashboard')">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white font-black shadow-md shadow-emerald-500/20">
+          <i class="fa-solid fa-graduation-cap text-lg"></i>
+        </div>
+        <div class="hidden sm:block">
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg text-slate-900 dark:text-white tracking-tight" data-i18n="appName">Chitral EduCloud</span>
+            <span id="liveDatabaseBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs border border-emerald-500 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> LIVE DATABASE</span>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-none" data-i18n="regionTag">Chitral, KP, Pakistan</p>
+        </div>
+      </div>
+
+      <!-- School Tenant Selector (Multi-Tenant Switcher) -->
+      <div class="hidden md:flex items-center ml-2 border-l border-slate-200 dark:border-slate-700 pl-3">
+        <label for="schoolTenantSelect" class="sr-only">School Branch</label>
+        <div class="relative">
+          <i class="fa-solid fa-school text-emerald-600 absolute left-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i>
+          <select id="schoolTenantSelect" class="text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg pl-8 pr-7 py-1.5 border border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer">
+            <!-- Populated dynamically via JS -->
+          </select>
+          <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center/Right Header Controls -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Chitral Local Weather Widget Badge -->
+      <div class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 text-[11px] font-medium text-slate-600 dark:text-slate-300">
+        <i class="fa-solid fa-mountain-sun text-teal-600"></i>
+        <span>Chitral: 14°C Sunny</span>
+      </div>
+
+      <!-- Role Switcher Quick Pill -->
+      <div class="relative">
+        <div class="flex items-center bg-slate-100 dark:bg-slate-700 p-0.5 rounded-lg border border-slate-200 dark:border-slate-600 text-xs font-semibold">
+          <button id="roleBtnAdmin" onclick="setRole('admin')" class="px-2.5 py-1 rounded-md transition-all active-role-pill bg-white dark:bg-emerald-600 text-emerald-700 dark:text-white shadow-xs">
+            <i class="fa-solid fa-user-shield mr-1"></i><span class="hidden sm:inline">Admin</span>
+          </button>
+          <button id="roleBtnTeacher" onclick="setRole('teacher')" class="px-2.5 py-1 rounded-md transition-all text-slate-600 dark:text-slate-300 hover:text-emerald-600">
+            <i class="fa-solid fa-chalkboard-user mr-1"></i><span class="hidden sm:inline">Teacher</span>
+          </button>
+          <button id="roleBtnParent" onclick="setRole('parent')" class="px-2.5 py-1 rounded-md transition-all text-slate-600 dark:text-slate-300 hover:text-emerald-600">
+            <i class="fa-solid fa-hands-holding-child mr-1"></i><span class="hidden sm:inline">Parent</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bilingual Language Toggle Button: English / اردو RTL -->
+      <button id="langToggleBtn" onclick="toggleLanguage()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-700 transition shadow-xs" title="Toggle English / اردو">
+        <i class="fa-solid fa-language text-sm"></i>
+        <span id="langLabel">اردو (RTL)</span>
+      </button>
+
+      <!-- Dark / Light Mode Toggle -->
+      <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-xs" title="Toggle Dark/Light Mode">
+        <i id="themeIcon" class="fa-solid fa-moon"></i>
+      </button>
+
+      <!-- User Profile Pill -->
+      <div class="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-700 cursor-pointer" onclick="navigateTo('screen-settings')">
+        <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs ring-2 ring-emerald-500/30">
+          <span id="userAvatarText">AD</span>
+        </div>
+        <div class="hidden lg:block text-left">
+          <p id="userNameText" class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">Admin Rehmat</p>
+          <p id="userRoleText" class="text-[10px] text-emerald-600 font-semibold leading-tight">Principal Desk</p>
+        </div>
+      </div>
+
+      <!-- Logout Button -->
+      <button onclick="handleUserLogout()" class="p-2 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Sign Out">
+        <i class="fa-solid fa-power-off text-sm"></i>
+      </button>
+    </div>
+  </header>
+
+
+  <!-- MAIN APP WRAPPER WITH SIDEBAR & CONTENT -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- DESKTOP / TABLET COLLAPSIBLE SIDEBAR -->
+    <aside id="sidebar" class="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col z-30 transition-transform duration-300 fixed lg:static inset-y-0 left-0 -translate-x-full lg:translate-x-0 shadow-xl lg:shadow-none top-[57px] h-[calc(100vh-57px)]">
+      <!-- Sidebar Navigation Menu -->
+      <div class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+        
+        <!-- Category: OVERVIEW -->
+        <div>
+          <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider px-3 mb-2" data-i18n="navOverview">OVERVIEW</p>
+          <ul class="space-y-1">
+            <li>
+              <button onclick="navigateTo('screen-dashboard')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-dashboard">
+                <i class="fa-solid fa-chart-pie w-4 text-center text-emerald-600"></i>
+                <span data-i18n="navDashboard">Admin Dashboard</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="navigateTo('screen-teacher')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-teacher">
+                <i class="fa-solid fa-chalkboard-user w-4 text-center text-teal-600"></i>
+                <span data-i18n="navTeacherPortal">Teacher Workspace</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="navigateTo('screen-parent')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-parent">
+                <i class="fa-solid fa-mobile-screen-button w-4 text-center text-indigo-600"></i>
+                <span data-i18n="navParentPortal">Parent Mobile Portal</span>
+                <span class="ml-auto text-[9px] bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold px-1.5 py-0.5 rounded">App</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Category: ACADEMICS & SIS -->
+        <div>
+          <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider px-3 mb-2" data-i18n="navAcademic">ACADEMICS & SIS</p>
+          <ul class="space-y-1">
+            <li>
+              <button onclick="navigateTo('screen-students')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-students">
+                <i class="fa-solid fa-users w-4 text-center text-emerald-600"></i>
+                <span data-i18n="navStudents">Student SIS</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="navigateTo('screen-profile')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-profile">
+                <i class="fa-solid fa-id-badge w-4 text-center text-blue-600"></i>
+                <span data-i18n="navProfile">Student 360° Profile</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="navigateTo('screen-idcard')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-idcard">
+                <i class="fa-solid fa-qrcode w-4 text-center text-purple-600"></i>
+                <span data-i18n="navIdCard">Digital ID Card</span>
+                <span class="ml-auto text-[9px] bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-bold px-1.5 py-0.5 rounded">QR</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="navigateTo('screen-attendance')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-attendance">
+                <i class="fa-solid fa-calendar-check w-4 text-center text-emerald-600"></i>
+                <span data-i18n="navAttendance">Attendance Sheet</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="navigateTo('screen-exams')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-exams">
+                <i class="fa-solid fa-clipboard-list w-4 text-center text-amber-600"></i>
+                <span data-i18n="navExams">Exams & Results</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="navigateTo('screen-dmc')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-dmc">
+                <i class="fa-solid fa-file-invoice w-4 text-center text-rose-600"></i>
+                <span data-i18n="navDmc">Printable DMC</span>
+                <span class="ml-auto text-[9px] bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-bold px-1.5 py-0.5 rounded">PDF</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Category: FINANCE & COMMUNICATIONS -->
+        <div>
+          <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider px-3 mb-2" data-i18n="navFinancial">FINANCE & ACCOUNTS</p>
+          <ul class="space-y-1">
+            <li>
+              <button onclick="navigateTo('screen-fees')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-fees">
+                <i class="fa-solid fa-cash-register w-4 text-center text-emerald-600"></i>
+                <span data-i18n="navFees">Fee Management</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="navigateTo('screen-alerts')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-alerts">
+                <i class="fa-brands fa-whatsapp w-4 text-center text-emerald-500"></i>
+                <span data-i18n="navAlerts">WhatsApp / SMS Hub</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="navigateTo('screen-settings')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-settings">
+                <i class="fa-solid fa-sliders w-4 text-center text-slate-500"></i>
+                <span data-i18n="navSettings">School Settings</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="navigateTo('screen-login')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-login">
+                <i class="fa-solid fa-arrow-right-from-bracket w-4 text-center text-slate-400"></i>
+                <span data-i18n="navLogin">Login / Switch Tenant</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Sidebar Footer Info -->
+      <div class="p-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+        <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+          <span>Session: 2026-2027</span>
+          <span class="inline-flex items-center gap-1 text-emerald-600 font-bold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Online
+          </span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- SIDEBAR BACKDROP FOR MOBILE -->
+    <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/50 z-20 hidden lg:hidden" onclick="toggleMobileSidebar()"></div>
+
+
+    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <nav id="bottomNav" class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-slate-800/95 glass-header border-t border-slate-200 dark:border-slate-700 px-3 py-2 flex items-center justify-around z-30 shadow-lg">
+      <button onclick="navigateTo('screen-dashboard')" class="flex flex-col items-center text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600">
+        <i class="fa-solid fa-chart-pie text-base mb-0.5"></i>
+        <span>Admin</span>
+      </button>
+      <button onclick="navigateTo('screen-students')" class="flex flex-col items-center text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600">
+        <i class="fa-solid fa-users text-base mb-0.5"></i>
+        <span>SIS</span>
+      </button>
+      <button onclick="navigateTo('screen-attendance')" class="flex flex-col items-center text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600">
+        <i class="fa-solid fa-calendar-check text-base mb-0.5"></i>
+        <span>Attend</span>
+      </button>
+      <button onclick="navigateTo('screen-fees')" class="flex flex-col items-center text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600">
+        <i class="fa-solid fa-receipt text-base mb-0.5"></i>
+        <span>Fees</span>
+      </button>
+      <button onclick="navigateTo('screen-parent')" class="flex flex-col items-center text-[10px] font-bold text-emerald-600">
+        <i class="fa-solid fa-mobile-screen text-base mb-0.5"></i>
+        <span>Parent</span>
+      </button>
+    </nav>
+
+

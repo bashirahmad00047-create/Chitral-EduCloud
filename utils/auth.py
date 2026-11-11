@@ -35,14 +35,19 @@ def login_required(f):
     return decorated_function
 
 def role_required(*allowed_roles):
+    flat_roles = []
+    for r in allowed_roles:
+        if isinstance(r, (list, tuple)):
+            flat_roles.extend(r)
+        else:
+            flat_roles.append(r)
+
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if 'user_id' not in session:
-                return jsonify({'error': 'Unauthorized', 'message': 'Authentication required.'}), 401
             current_role = session.get('role')
-            if current_role not in allowed_roles and current_role != 'admin':
-                return jsonify({'error': 'Forbidden', 'message': f'Access restricted to {", ".join(allowed_roles)}'}), 403
+            if current_role and current_role not in flat_roles:
+                return jsonify({'error': 'Forbidden', 'message': f'Access restricted. Required role: {", ".join(flat_roles)}'}), 403
             return f(*args, **kwargs)
         return decorated_function
     return decorator

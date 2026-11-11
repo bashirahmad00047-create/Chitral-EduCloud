@@ -1,0 +1,394 @@
+      <!-- SCREEN 6: PARENT PORTAL DASHBOARD (MOBILE-FIRST) -->
+      <section id="screen-parent" class="screen-view hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white" data-i18n="parentPortalTitle">Parent Smartphone Portal</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="parentPortalSubtitle">Real-time updates for parents: attendance, fees, homework diary & DMC.</p>
+          </div>
+          <!-- Child Switcher Pill -->
+          <div class="flex items-center gap-2 bg-white dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
+            <span class="text-xs font-bold text-slate-500 px-2" data-i18n="switchChild">Switch Child:</span>
+            <button onclick="switchParentChild('STU-1001')" id="pChildBtn1" class="px-3 py-1 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-xs">Aliyan Ali (Grade 10-A)</button>
+            <button onclick="switchParentChild('STU-1005')" id="pChildBtn2" class="px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs">Mehreen Bibi (Grade 9-A)</button>
+          </div>
+        </div>
+
+        <!-- Phone Frame Container for Authenticity -->
+        <div class="max-w-md mx-auto bg-white dark:bg-slate-800 rounded-3xl border-2 border-slate-300 dark:border-slate-700 p-5 shadow-2xl space-y-5">
+          <!-- Mobile Child Card Banner -->
+          <div class="bg-gradient-to-r from-emerald-700 to-teal-700 text-white rounded-2xl p-4 shadow-md flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-white/20 text-white flex items-center justify-center text-xl font-black">
+                <span id="parentChildAvatar">AA</span>
+              </div>
+              <div>
+                <h3 class="font-extrabold text-base" id="parentChildName">Aliyan Ali</h3>
+                <p class="text-xs text-emerald-100" id="parentChildClass">Grade 10 - Section A &bull; Roll #101</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white text-emerald-800">Enrolled</span>
+          </div>
+
+          <!-- Attendance Widget: Arrival Punctuality -->
+          <div class="bg-slate-50 dark:bg-slate-700/40 rounded-2xl p-4 border border-slate-200 dark:border-slate-600">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400" data-i18n="todayChildAttendance">Today's Attendance Status</span>
+              <span class="text-xs font-bold text-slate-400" id="parentTodayDate">Today</span>
+            </div>
+            <div class="mt-3 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center text-lg">
+                  <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                  <h4 class="font-black text-sm text-emerald-600 dark:text-emerald-400" id="parentAttStatus">PRESENT AT SCHOOL</h4>
+                  <p class="text-[11px] text-slate-500"><span data-i18n="arrivedAt">Punctual Arrival:</span> <strong class="text-slate-700 dark:text-slate-300" id="parentArrivalTime">08:14 AM</strong></p>
+                </div>
+              </div>
+              <span class="text-xs font-black text-emerald-700 bg-emerald-100 dark:bg-emerald-900/60 px-2 py-1 rounded-lg">95.4% Rate</span>
+            </div>
+          </div>
+
+          <!-- Pending Fee Challan Card -->
+          <div class="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-slate-700/60 dark:to-slate-700/30 rounded-2xl p-4 border border-amber-200 dark:border-amber-800/60">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-800 dark:text-amber-300" data-i18n="pendingChallanCard">Current Month Fee Challan</span>
+              <span class="text-[10px] font-bold bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-full" id="parentFeeBadge">DUE OCT 15</span>
+            </div>
+            <div class="mt-3 flex items-center justify-between">
+              <div>
+                <p class="text-xs text-slate-500">Challan #: <strong class="text-slate-700 dark:text-slate-300" id="parentChallanNo">CH-2026-1049</strong></p>
+                <h3 class="text-xl font-black text-slate-900 dark:text-white mt-0.5" id="parentFeeAmount">PKR 4,500</h3>
+              </div>
+              <button onclick="openParentPayModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5">
+                <i class="fa-solid fa-mobile-screen"></i> <span data-i18n="btnPayOnline">Pay Online</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Homework & Diary Card -->
+          <div class="bg-slate-50 dark:bg-slate-700/40 rounded-2xl p-4 border border-slate-200 dark:border-slate-600 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-xs text-slate-900 dark:text-white" data-i18n="homeworkDiaryTitle">Daily Homework & Study Diary</h4>
+              <span class="text-[10px] text-emerald-600 font-bold">3 Tasks Today</span>
+            </div>
+            <div class="space-y-2.5" id="parentHomeworkList">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Latest Exam DMC Snapshot -->
+          <div class="bg-slate-50 dark:bg-slate-700/40 rounded-2xl p-4 border border-slate-200 dark:border-slate-600 flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold text-slate-900 dark:text-white" data-i18n="latestResultTitle">Latest Term Performance</p>
+              <p class="text-xs text-emerald-600 font-semibold mt-0.5" id="parentExamSnapshot">First Term 2026: 89.2% (Grade A+)</p>
+            </div>
+            <button onclick="viewStudentDmc(currentSelectedStudentId)" class="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-500 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700">
+              <i class="fa-solid fa-file-invoice mr-1"></i> View DMC
+            </button>
+          </div>
+
+          <!-- Direct School WhatsApp Help Button -->
+          <a href="https://wa.me/923459821455" target="_blank" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition">
+            <i class="fa-brands fa-whatsapp text-base"></i> <span data-i18n="contactSchoolWhatsApp">WhatsApp School Desk</span>
+          </a>
+        </div>
+      </section>
+
+
+      <!-- SCREEN 9: FEE MANAGEMENT & FINANCIAL ACCOUNTING -->
+      <section id="screen-fees" class="screen-view hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white" data-i18n="feeManagementTitle">Fee Management & Financial Accounting</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="feeSubtitle">Fee vouchers, challan generation, arrears ledger, and teacher payroll.</p>
+          </div>
+          <!-- Fee Action Tabs -->
+          <div class="flex items-center gap-2">
+            <button onclick="switchFeeSubTab('collection')" id="feeSubTabBtnCol" class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold transition shadow-xs">
+              <i class="fa-solid fa-receipt mr-1"></i> <span data-i18n="tabFeeCollection">Collect Fee</span>
+            </button>
+            <button onclick="switchFeeSubTab('challans')" id="feeSubTabBtnGen" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 transition">
+              <i class="fa-solid fa-print mr-1"></i> <span data-i18n="tabChallanGen">Challan Generator</span>
+            </button>
+            <button onclick="switchFeeSubTab('payroll')" id="feeSubTabBtnPay" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 transition">
+              <i class="fa-solid fa-money-check mr-1"></i> <span data-i18n="tabPayroll">Payroll</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- SUBTAB 1: FEE COLLECTION LEDGER -->
+        <div id="feeSubTabCollection" class="space-y-4">
+          <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+            <div class="relative w-full md:w-80">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="feeSearchInput" oninput="filterFeeTable()" placeholder="Search Challan #, Student Name, Roll #..." class="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="exportFeeLedgerCsv()" class="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 transition flex items-center gap-1.5 shadow-xs">
+                <i class="fa-solid fa-file-excel text-emerald-600"></i> Export Ledger CSV
+              </button>
+              <button onclick="print3CopyBankChallan(currentSelectedStudentId)" class="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 transition">
+                <i class="fa-solid fa-file-invoice text-emerald-600 mr-1"></i> <span data-i18n="btnPrintA4Challan">3-Copy Bank Challan</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 font-bold border-b border-slate-200 dark:border-slate-700 uppercase tracking-wider">
+                  <tr>
+                    <th class="p-3.5">Challan #</th>
+                    <th class="p-3.5" data-i18n="tblStudentName">Student</th>
+                    <th class="p-3.5">Class</th>
+                    <th class="p-3.5">Monthly Tuition</th>
+                    <th class="p-3.5">Arrears</th>
+                    <th class="p-3.5">Total Payable</th>
+                    <th class="p-3.5" data-i18n="tblFeeStatus">Status</th>
+                    <th class="p-3.5 text-center">Collect / Print Receipt</th>
+                  </tr>
+                </thead>
+                <tbody id="feeCollectionTableBody" class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-200">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBTAB 2: CHALLAN GENERATOR -->
+        <div id="feeSubTabChallans" class="hidden space-y-4">
+          <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm max-w-2xl">
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-4">Bulk Monthly Fee Voucher Generator (October 2026)</h3>
+            <div class="space-y-4 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Target Class</label>
+                <select class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200">
+                  <option>All Enrolled Classes (Full Campus)</option>
+                  <option>Grade 10 (Both Sections)</option>
+                  <option>Grade 9 (Both Sections)</option>
+                  <option>FSc-I & FSc-II</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Due Date</label>
+                  <input type="date" value="2026-10-15" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Include Winter Heating Charge</label>
+                  <select class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200">
+                    <option>Yes (+PKR 800 Chitral Winter Fuel)</option>
+                    <option>No</option>
+                  </select>
+                </div>
+              </div>
+              <button onclick="triggerBulkChallanGen()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-gears"></i> Generate 684 Monthly Challans
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBTAB 3: TEACHER & STAFF PAYROLL -->
+        <div id="feeSubTabPayroll" class="hidden space-y-4">
+          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white" data-i18n="tabPayroll">Staff Payroll Summary</h3>
+              <span class="text-xs text-slate-500">Month: October 2026</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 font-bold uppercase tracking-wider">
+                  <tr>
+                    <th class="p-3.5">Emp ID</th>
+                    <th class="p-3.5">Staff Name</th>
+                    <th class="p-3.5">Designation</th>
+                    <th class="p-3.5">Basic (PKR)</th>
+                    <th class="p-3.5">Allowance</th>
+                    <th class="p-3.5">Net Salary</th>
+                    <th class="p-3.5">Status</th>
+                    <th class="p-3.5">Payment Mode</th>
+                  </tr>
+                </thead>
+                <tbody id="payrollTableBody" class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-200">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- SCREEN 12: NOTIFICATIONS & SMS/WHATSAPP ALERTS HUB -->
+      <section id="screen-alerts" class="screen-view hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white" data-i18n="alertsTitle">WhatsApp & SMS Broadcast Communications Hub</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="alertsSubtitle">Instant notifications for weather closures, fee dues, and emergency alerts.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Broadcast Composer (2 Columns) -->
+          <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white">Compose Broadcast Announcement</h3>
+            
+            <!-- Channel & Audience Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1" data-i18n="broadcastChannel">Notification Channel</label>
+                <select id="broadcastChannelSelect" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200">
+                  <option><i class="fa-brands fa-whatsapp"></i> WhatsApp Business Broadcast (Recommended)</option>
+                  <option>SMS Gateway (Telekom / Zong)</option>
+                  <option>EduCloud Mobile App Notification</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1" data-i18n="targetAudience">Target Recipients</label>
+                <select id="broadcastAudienceSelect" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200">
+                  <option value="all">All School Parents (684 Guardians)</option>
+                  <option value="defaulters">Fee Defaulters Only (42 Parents)</option>
+                  <option value="grade10">Parents of Grade 10 Students (74 Parents)</option>
+                  <option value="staff">Teaching & Administrative Staff (32 Members)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pre-built Chitral Templates -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1" data-i18n="prebuiltTemplates">Chitral Contextual Templates</label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="broadcastTemplateButtons">
+                <!-- Rendered via JS -->
+              </div>
+            </div>
+
+            <!-- Message Textarea -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Message Text (English or اردو)</label>
+                <span class="text-[11px] text-slate-400" id="broadcastCharCount">0 characters</span>
+              </div>
+              <textarea id="broadcastContentTextarea" rows="4" oninput="updateBroadcastCharCount()" class="w-full p-3 text-xs rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Type your announcement or click a template above..."></textarea>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <span class="text-xs text-slate-500">Estimated cost: <strong class="text-emerald-600">PKR 0.00 (WhatsApp API)</strong></span>
+              <div class="flex items-center gap-2">
+                <button onclick="dispatchBroadcastAlert()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition">
+                  <i class="fa-solid fa-paper-plane"></i> <span data-i18n="btnSendBroadcast">Broadcast</span>
+                </button>
+                <button onclick="sendDirectWhatsAppAlertFromHub()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition" title="Open prefilled WhatsApp message">
+                  <i class="fa-brands fa-whatsapp text-sm"></i> Send via WhatsApp
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live WhatsApp Bubble Preview -->
+          <div class="bg-slate-100 dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 mb-3">
+                <i class="fa-brands fa-whatsapp text-emerald-500 text-base"></i> <span data-i18n="messagePreview">Live Chat Bubble Preview</span>
+              </div>
+              <!-- WhatsApp Phone Bubble -->
+              <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded-2xl rounded-tl-none p-4 text-xs text-slate-800 dark:text-slate-100 shadow-sm relative">
+                <p class="font-bold text-[11px] text-emerald-800 dark:text-emerald-300 mb-1">Chitral Model College & School</p>
+                <p id="whatsappBubblePreview" class="text-xs leading-relaxed whitespace-pre-wrap">Select a prebuilt template or type your message on the left to see live preview.</p>
+                <span class="block text-right text-[10px] text-slate-400 mt-2">12:30 PM &bull; <i class="fa-solid fa-check-double text-blue-500"></i></span>
+              </div>
+            </div>
+
+            <!-- Recent Broadcast History -->
+            <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+              <h4 class="font-bold text-xs text-slate-700 dark:text-slate-300 mb-2" data-i18n="sentHistory">Recent Broadcast Logs</h4>
+              <div class="space-y-2 text-[11px]" id="recentBroadcastHistory">
+                <!-- Rendered via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 13: MULTI-TENANT SCHOOL SETTINGS -->
+      <section id="screen-settings" class="screen-view hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white" data-i18n="settingsTitle">Multi-Tenant School ERP Configuration</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="settingsSubtitle">Campus identity, academic calendar, fee tariffs, and multi-school tenancy.</p>
+          </div>
+          <button onclick="saveSchoolSettings()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="save">Save Changes</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Campus Identity & Legal Affiliation -->
+          <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4 text-xs">
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white">Campus Institutional Profile</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1" data-i18n="schoolNameLabel">School Registered Name</label>
+                <input type="text" id="cfgSchoolName" value="Chitral Model College & School" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1" data-i18n="biseCodeLabel">BISE Affiliation Code</label>
+                <input type="text" id="cfgBiseCode" value="BISE Peshawar #CMC-4819" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200">
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1" data-i18n="campusAddressLabel">Campus Physical Address</label>
+              <input type="text" id="cfgCampusAddress" value="Ataliq Bazaar Road, Chitral Town, KP, Pakistan" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1" data-i18n="phoneContactLabel">Office Telephone / WhatsApp</label>
+                <input type="text" id="cfgSchoolPhone" value="+92 (0943) 412580" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1" data-i18n="emailLabel">Official School Email</label>
+                <input type="text" id="cfgSchoolEmail" value="info@chitralmodel.edu.pk" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1" data-i18n="academicSessionLabel">Active Academic Year</label>
+                <select id="cfgAcademicSession" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200">
+                  <option selected>2026-2027</option>
+                  <option>2025-2026</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Winter Heating Fuel Levy (PKR)</label>
+                <input type="number" id="cfgHeatingLevy" value="800" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200">
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Backup & Security Management -->
+          <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4 text-xs">
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white" data-i18n="systemBackupTitle">System Security & Data Backup</h3>
+            <p class="text-slate-500 leading-relaxed">
+              Export an encrypted JSON database dump of all students, fee receipts, and marks registers.
+            </p>
+            <div class="space-y-2 pt-2">
+              <button onclick="downloadJsonBackup()" class="w-full py-2.5 bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-100 transition">
+                <i class="fa-solid fa-cloud-arrow-down"></i> <span data-i18n="btnExportBackup">Download JSON Backup</span>
+              </button>
+              <button onclick="resetDemoDataset()" class="w-full py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-200 transition">
+                <i class="fa-solid fa-arrow-rotate-left"></i> <span data-i18n="btnResetDemo">Reset to Demo State</span>
+              </button>
+            </div>
+            <div class="pt-4 border-t border-slate-200 dark:border-slate-700 text-[11px] text-slate-400">
+              System Version: 1.0.0 &middot; Database: SQLite / JSON Store &middot; Server: Flask 5050
+            </div>
+          </div>
+        </div>
+      </section>
+

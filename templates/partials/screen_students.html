@@ -1,0 +1,315 @@
+      <!-- SCREEN 3: STUDENT INFORMATION SYSTEM (SIS) -->
+      <section id="screen-students" class="screen-view hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white" data-i18n="studentSisTitle">Student Information System</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="studentSisSubtitle">Comprehensive student roster, admission records, and enrollment status.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="exportStudentsCsv()" class="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center gap-2 shadow-xs">
+              <i class="fa-solid fa-file-excel text-emerald-600"></i> <span data-i18n="btnExportCsv">Export CSV</span>
+            </button>
+            <button onclick="openAddStudentModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-sm">
+              <i class="fa-solid fa-user-plus"></i> <span data-i18n="btnAddStudent">+ Add New Student</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Search Controls Bar -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+          <div class="relative w-full md:w-80">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" id="studentSearchInput" oninput="filterStudentsTable()" placeholder="Search name, roll #, guardian phone..." class="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            <!-- Filter by Class -->
+            <select id="filterClassSelect" onchange="filterStudentsTable()" class="text-xs bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="All">All Classes</option>
+              <option value="Grade 10">Grade 10</option>
+              <option value="Grade 9">Grade 9</option>
+              <option value="FSc-I Pre-Medical">FSc-I Pre-Medical</option>
+              <option value="Grade 8">Grade 8</option>
+            </select>
+            <!-- Filter by Fee Status -->
+            <select id="filterFeeStatusSelect" onchange="filterStudentsTable()" class="text-xs bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="All">All Fee Status</option>
+              <option value="Paid">Paid</option>
+              <option value="Pending">Pending</option>
+              <option value="Overdue">Overdue / Arrears</option>
+            </select>
+            <!-- Clear Filter Button -->
+            <button onclick="resetStudentFilters()" class="text-xs px-2.5 py-2 text-slate-500 hover:text-slate-800 dark:hover:text-white font-semibold">
+              <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Student Roster Data Table -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-700 uppercase tracking-wider">
+                <tr>
+                  <th class="p-3.5">Roll / Adm #</th>
+                  <th class="p-3.5" data-i18n="tblStudentName">Student Name</th>
+                  <th class="p-3.5" data-i18n="tblFatherName">Father's Name</th>
+                  <th class="p-3.5" data-i18n="tblClassSection">Class & Sec</th>
+                  <th class="p-3.5" data-i18n="villageTown">Village (Chitral)</th>
+                  <th class="p-3.5" data-i18n="tblFeeStatus">Fee Status</th>
+                  <th class="p-3.5 text-center" data-i18n="action">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="studentTableBody" class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-200">
+                <!-- Rendered dynamically via JS -->
+              </tbody>
+            </table>
+          </div>
+          <!-- Table Footer Pagination / Summary -->
+          <div class="p-3.5 bg-slate-50/50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs text-slate-500">
+            <span id="studentTableCounter">Showing 8 of 8 Students</span>
+            <span class="font-semibold text-emerald-600">Active Chitral Student Database</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: INDIVIDUAL STUDENT 360 PROFILE -->
+      <section id="screen-profile" class="screen-view hidden space-y-6">
+        <!-- Student Top Bio Header -->
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div class="flex items-center gap-5">
+            <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center text-3xl font-black shadow-lg shadow-emerald-600/20">
+              <span id="profileAvatarLetter">AA</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-2xl font-black text-slate-900 dark:text-white" id="profileStudentName">Aliyan Ali</h2>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300" id="profileStatusBadge">Active</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">s/o <strong class="text-slate-700 dark:text-slate-200" id="profileFatherName">Mir Wazir Khan</strong> &bull; Adm #: <strong class="text-slate-700 dark:text-slate-200" id="profileAdmNo">CMC-2024-0412</strong> &bull; Roll #: <strong class="text-slate-700 dark:text-slate-200" id="profileRollNo">101</strong></p>
+              <p class="text-xs text-emerald-600 font-semibold mt-0.5"><i class="fa-solid fa-location-dot mr-1"></i> <span id="profileVillage">Atani, Garam Chashma Road, Chitral</span></p>
+            </div>
+          </div>
+          <!-- Profile Action Buttons -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="viewStudentIdCard(currentSelectedStudentId)" class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-xs font-bold hover:bg-purple-100 transition flex items-center gap-2">
+              <i class="fa-solid fa-qrcode"></i> <span data-i18n="navIdCard">Digital ID Card</span>
+            </button>
+            <button onclick="viewStudentDmc(currentSelectedStudentId)" class="px-3.5 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-bold hover:bg-rose-100 transition flex items-center gap-2">
+              <i class="fa-solid fa-file-invoice"></i> <span data-i18n="navDmc">View DMC Report</span>
+            </button>
+            <button onclick="openCollectFeeModal(currentSelectedStudentId)" class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500 transition flex items-center gap-2 shadow-xs">
+              <i class="fa-solid fa-receipt"></i> <span data-i18n="tabFeeCollection">Fee Ledger</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 360 Tabs Navigation -->
+        <div class="border-b border-slate-200 dark:border-slate-700 flex items-center gap-2 text-xs font-bold">
+          <button onclick="switchProfileTab('bio')" id="tabBtnBio" class="px-4 py-2.5 border-b-2 border-emerald-600 text-emerald-600 flex items-center gap-2">
+            <i class="fa-solid fa-user"></i> <span data-i18n="tabBio">Bio & Guardian</span>
+          </button>
+          <button onclick="switchProfileTab('attendance')" id="tabBtnAttendance" class="px-4 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-calendar-check"></i> <span data-i18n="tabAttendanceLedger">Attendance Log</span>
+          </button>
+          <button onclick="switchProfileTab('fee')" id="tabBtnFee" class="px-4 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-money-check-dollar"></i> <span data-i18n="tabFeeLedger">Fee Ledgers</span>
+          </button>
+          <button onclick="switchProfileTab('exams')" id="tabBtnExams" class="px-4 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-award"></i> <span data-i18n="tabExamsLedger">Exam Performance</span>
+          </button>
+        </div>
+
+        <!-- Tab Content 1: Bio Details -->
+        <div id="profileTabBio" class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+          <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-4">Official Bio & Family Credentials</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs" id="profileBioGrid">
+            <!-- Rendered dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- Tab Content 2: Attendance Log -->
+        <div id="profileTabAttendance" class="hidden bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-sm text-slate-900 dark:text-white">Annual Attendance Ratio & History</h4>
+            <span class="text-xs font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-3 py-1 rounded-lg" id="profileOverallAttPct">95.4% Attendance Rate</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
+              <p class="text-xs text-emerald-700 dark:text-emerald-300 font-bold">Days Present</p>
+              <h3 class="text-xl font-black text-emerald-800 dark:text-emerald-200 mt-1">168 Days</h3>
+            </div>
+            <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
+              <p class="text-xs text-rose-700 dark:text-rose-300 font-bold">Days Absent</p>
+              <h3 class="text-xl font-black text-rose-800 dark:text-rose-200 mt-1">4 Days</h3>
+            </div>
+            <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
+              <p class="text-xs text-amber-700 dark:text-amber-300 font-bold">Approved Leaves</p>
+              <h3 class="text-xl font-black text-amber-800 dark:text-amber-200 mt-1">2 Days</h3>
+            </div>
+          </div>
+          <p class="text-xs text-slate-500">Student is compliant with BISE minimum 75% attendance rule for board exams.</p>
+        </div>
+
+        <!-- Tab Content 3: Fee Ledgers -->
+        <div id="profileTabFee" class="hidden bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-sm text-slate-900 dark:text-white">Fee Vouchers & Payment History</h4>
+            <button onclick="openCollectFeeModal(currentSelectedStudentId)" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold">+ Collect Fee</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-50 dark:bg-slate-700 text-slate-500 font-bold">
+                <tr>
+                  <th class="p-3">Month</th>
+                  <th class="p-3">Challan #</th>
+                  <th class="p-3">Amount (PKR)</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3">Payment Mode</th>
+                  <th class="p-3 text-center">Receipt</th>
+                </tr>
+              </thead>
+              <tbody id="profileFeeTableBody" class="divide-y divide-slate-100 dark:divide-slate-700">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab Content 4: Exam Performance -->
+        <div id="profileTabExams" class="hidden bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white">Latest Exam Results Summary</h4>
+              <p class="text-xs text-slate-500">First Term Examination 2026</p>
+            </div>
+            <button onclick="viewStudentDmc(currentSelectedStudentId)" class="px-3 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-bold flex items-center gap-1">
+              <i class="fa-solid fa-print"></i> Print Full DMC
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-50 dark:bg-slate-700 text-slate-500 font-bold">
+                <tr>
+                  <th class="p-3">Subject</th>
+                  <th class="p-3">Max</th>
+                  <th class="p-3">Pass</th>
+                  <th class="p-3">Obtained</th>
+                  <th class="p-3">Grade</th>
+                  <th class="p-3">Remarks</th>
+                </tr>
+              </thead>
+              <tbody id="profileExamsTableBody" class="divide-y divide-slate-100 dark:divide-slate-700">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: DIGITAL STUDENT ID CARD WITH QR CODE (PVC PRINT READY) -->
+      <section id="screen-idcard" class="screen-view hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white" data-i18n="idCardTitle">Digital Student PVC Card with QR Code</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="idCardSubtitle">Bilingual, print-ready PVC Smart ID card with verifiable QR code.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <select id="idCardStudentSelector" onchange="renderIdCardForStudent(this.value)" class="text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-emerald-500">
+              <!-- Populated via JS -->
+            </select>
+            <button onclick="printIdCard()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-sm">
+              <i class="fa-solid fa-print"></i> <span data-i18n="btnPrintCard">Print PVC Card</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ID Card Preview Showcase (Front & Back) -->
+        <div class="flex flex-wrap items-center justify-center gap-8 py-8 bg-slate-100 dark:bg-slate-950/40 rounded-3xl border border-slate-200 dark:border-slate-800 id-card-print-target">
+          
+          <!-- PVC CARD FRONT -->
+          <div class="id-card-pvc bg-white text-slate-900 flex flex-col justify-between border-2 border-emerald-700/80 shadow-2xl">
+            <!-- Front Header -->
+            <div class="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 text-white p-3.5 text-center relative">
+              <div class="w-8 h-8 rounded-full bg-white text-emerald-800 font-black text-xs flex items-center justify-center mx-auto mb-1 shadow-md">
+                <i class="fa-solid fa-graduation-cap"></i>
+              </div>
+              <h3 class="font-extrabold text-xs uppercase tracking-tight" id="idCardSchoolName">Chitral Model College</h3>
+              <p class="text-[9px] text-emerald-200 font-medium">Recognized by BISE Peshawar &middot; Chitral</p>
+              <div class="mt-1 bg-emerald-700/60 text-white text-[8px] font-bold py-0.5 px-2 rounded-full inline-block">
+                STUDENT IDENTITY CARD
+              </div>
+            </div>
+
+            <!-- Student Photo & Details -->
+            <div class="p-4 flex flex-col items-center flex-1 text-center justify-center">
+              <div class="w-24 h-24 rounded-2xl bg-gradient-to-tr from-emerald-100 to-teal-50 border-2 border-emerald-600 flex items-center justify-center text-emerald-700 text-4xl font-black mb-3 shadow-sm relative overflow-hidden">
+                <i class="fa-solid fa-user-graduate"></i>
+              </div>
+              <h4 class="font-black text-base text-slate-900 leading-tight" id="idCardStudentName">Aliyan Ali</h4>
+              <p class="text-[11px] text-slate-500 font-semibold" id="idCardFatherName">s/o Mir Wazir Khan</p>
+              
+              <div class="w-full mt-3 grid grid-cols-2 gap-2 text-left bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-[10px]">
+                <div>
+                  <span class="text-slate-400 block font-semibold">CLASS</span>
+                  <strong class="text-slate-800" id="idCardClass">Grade 10-A</strong>
+                </div>
+                <div>
+                  <span class="text-slate-400 block font-semibold">ROLL NO</span>
+                  <strong class="text-slate-800" id="idCardRoll">101</strong>
+                </div>
+                <div>
+                  <span class="text-slate-400 block font-semibold">ADM NO</span>
+                  <strong class="text-slate-800" id="idCardAdmNo">CMC-2024-0412</strong>
+                </div>
+                <div>
+                  <span class="text-slate-400 block font-semibold">BLOOD GRP</span>
+                  <strong class="text-rose-600" id="idCardBlood">O+</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Front Footer -->
+            <div class="bg-slate-100 px-4 py-2 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-600">
+              <span>Session: 2026-2027</span>
+              <span class="font-bold text-emerald-700">Official Card</span>
+            </div>
+          </div>
+
+          <!-- PVC CARD BACK -->
+          <div class="id-card-pvc bg-white text-slate-900 flex flex-col justify-between border-2 border-slate-300 shadow-2xl">
+            <!-- Back Header -->
+            <div class="bg-slate-800 text-white p-3 text-center">
+              <h4 class="font-bold text-xs uppercase tracking-wider">Verification & Terms</h4>
+              <p class="text-[9px] text-slate-300">Property of Chitral Model College</p>
+            </div>
+
+            <!-- Live Generated QR Code & Emergency Contact -->
+            <div class="p-4 flex flex-col items-center justify-center flex-1 text-center">
+              <div id="idCardQrContainer" class="p-2 bg-white rounded-xl border border-slate-200 shadow-xs mb-2">
+                <!-- Live QR Code will be drawn here -->
+              </div>
+              <p class="text-[9px] text-slate-500 font-medium max-w-[200px]" data-i18n="scanVerify">Scan QR code to verify student enrollment status online.</p>
+
+              <div class="w-full mt-3 bg-rose-50 border border-rose-200 rounded-xl p-2 text-left text-[10px]">
+                <span class="text-rose-600 font-bold block"><i class="fa-solid fa-phone-volume mr-1"></i> EMERGENCY CONTACT:</span>
+                <strong class="text-slate-800" id="idCardEmergencyPhone">0300-5847321</strong>
+                <span class="block text-slate-500 text-[9px] mt-0.5" id="idCardAddressShort">Atani, Garam Chashma Road, Chitral</span>
+              </div>
+            </div>
+
+            <!-- Principal Signature -->
+            <div class="p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-[9px]">
+              <div>
+                <p class="text-[8px] text-slate-400 uppercase font-semibold">Authorized By:</p>
+                <div class="h-6 font-serif italic font-bold text-slate-800 text-xs">R. U. Baig</div>
+                <p class="font-bold text-slate-700 text-[8px]" data-i18n="authorizedSign">Principal Signature</p>
+              </div>
+              <div class="w-8 h-8 rounded-full border border-dashed border-slate-400 flex items-center justify-center text-[7px] text-slate-400 text-center uppercase font-bold">
+                SEAL
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+

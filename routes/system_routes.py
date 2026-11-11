@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 import database
+from utils.auth import role_required
 from utils.exports import (
     generate_students_csv,
     generate_attendance_csv,
@@ -42,6 +43,7 @@ def send_broadcast():
 
 # School Settings Update
 @system_bp.route('/api/schools/<school_id>', methods=['PUT'])
+@role_required(['admin'])
 def update_school_settings(school_id):
     data = request.get_json() or {}
     conn = database.get_db()

@@ -20,10 +20,13 @@ def login():
 
     if school_id:
         cursor.execute("SELECT * FROM users WHERE username = ? AND school_id = ?", (username, school_id))
+        user_row = cursor.fetchone()
+        if not user_row:
+            cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+            user_row = cursor.fetchone()
     else:
         cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
-    
-    user_row = cursor.fetchone()
+        user_row = cursor.fetchone()
     conn.close()
 
     if not user_row or not check_password_hash(user_row['password_hash'], password):

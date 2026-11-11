@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 import database
+from utils.auth import role_required
 
 finance_bp = Blueprint('finance', __name__)
 
@@ -90,6 +91,7 @@ def generate_challans():
     })
 
 @finance_bp.route('/api/staff/pay', methods=['POST'])
+@role_required(['admin'])
 def pay_staff():
     data = request.get_json() or {}
     emp_id = data.get('emp_id')
