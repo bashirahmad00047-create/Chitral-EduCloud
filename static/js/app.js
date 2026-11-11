@@ -26,9 +26,24 @@ let state = {
 document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
   initNavigation();
+  await checkAuthSession();
   await loadSchoolData(state.currentSchoolId);
   initCharts();
 });
+
+async function checkAuthSession() {
+  try {
+    const res = await fetch('/api/auth/me');
+    const data = await res.json();
+    if (data.authenticated && data.user) {
+      state.currentUser = data.user;
+      state.currentRole = data.user.role;
+      updateHeaderUserUI(data.user);
+    }
+  } catch (err) {
+    console.warn("Auth check:", err);
+  }
+}
 
 // ==================== REST API DATA LOADER ====================
 async function loadSchoolData(schoolId, date = state.currentDate) {
@@ -268,8 +283,71 @@ function setRole(role) {
   showToast(`Active role: ${role.toUpperCase()}`);
 }
 
-function loginAsRole(role) {
+function updateHeaderUserUI(user) {
+  const avatar = document.getElementById('userAvatarText');
+  const name = document.getElementById('userNameText');
+  const roleText = document.getElementById('userRoleText');
+  if (user && name) {
+    name.innerText = user.full_name;
+    if (roleText) roleText.innerText = user.role === 'admin' ? "Principal Desk" : (user.role === 'teacher' ? "Faculty Member" : "Parent Portal");
+    if (avatar) avatar.innerText = user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  }
+}
+
+async function loginAsRole(role) {
+  try {
+    const res = await fetch('/api/auth/demo-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: role, school_id: state.currentSchoolId })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      state.currentUser = data.user;
+      updateHeaderUserUI(data.user);
+    }
+  } catch (err) {
+    console.warn("Demo login error:", err);
+  }
   setRole(role);
+}
+
+async function handleCredentialsLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: username,
+        password: password,
+        school_id: state.currentSchoolId
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      state.currentUser = data.user;
+      updateHeaderUserUI(data.user);
+      setRole(data.user.role);
+      showToast(data.message || "Logged in successfully!");
+    } else {
+      showToast(data.message || "Invalid username or password!");
+    }
+  } catch (err) {
+    showToast("Authentication request failed");
+  }
+}
+
+async function handleUserLogout() {
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch (err) {}
+  state.currentUser = null;
+  navigateTo('screen-login');
+  showToast("Logged out of Chitral EduCloud ERP");
 }
 
 // ==================== NAVIGATION ROUTER ====================
@@ -608,19 +686,27 @@ function resetStudentFilters() {
 }
 
 function exportStudentsCsv() {
-  const school = state.school;
-  let csv = "RollNo,AdmissionNo,Name,FatherName,Class,Section,Village,Phone,FeeStatus,MonthlyFeePKR\n";
-  state.students.forEach(s => {
-    csv += `"${s.roll_no}","${s.admission_no}","${s.full_name}","${s.father_name}","${s.class_grade}","${s.section}","${s.address || 'Chitral'}","${s.phone}","${s.fee_status || 'UNPAID'}","${s.monthly_fee}"\n`;
-  });
+  window.open(`/api/students/export/csv?school_id=${encodeURIComponent(state.currentSchoolId)}`, '_blank');
+  showToast("Downloading Student SIS Roster (UTF-8 Excel CSV)...");
+}
 
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${school.id || 'chitral'}_students_roster_2026.csv`;
-  a.click();
-  showToast("Exported Student CSV roster successfully from SQLite");
+function exportAttendanceCsv() {
+  const dateInput = document.getElementById('attDatePicker');
+  const dateStr = dateInput ? dateInput.value : state.currentDate;
+  window.open(`/api/attendance/export/csv?school_id=${encodeURIComponent(state.currentSchoolId)}&date=${encodeURIComponent(dateStr)}`, '_blank');
+  showToast("Downloading Daily Attendance Register (UTF-8 Excel CSV)...");
+}
+
+function exportFeeLedgerCsv() {
+  window.open(`/api/fees/export/csv?school_id=${encodeURIComponent(state.currentSchoolId)}`, '_blank');
+  showToast("Downloading Fee Collection Ledger (UTF-8 Excel CSV)...");
+}
+
+function exportExamMeritCsv() {
+  const termSelect = document.getElementById('examTermSelect');
+  const term = termSelect ? termSelect.value : "First Term";
+  window.open(`/api/exams/export/csv?school_id=${encodeURIComponent(state.currentSchoolId)}&term=${encodeURIComponent(term)}`, '_blank');
+  showToast("Downloading Exam Merit List (UTF-8 Excel CSV)...");
 }
 
 // Add Student Modal & API Call
