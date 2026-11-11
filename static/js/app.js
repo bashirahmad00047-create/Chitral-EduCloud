@@ -182,6 +182,13 @@ function updateSchoolHeaderUI() {
   const school = state.school;
   const isUr = state.currentLang === 'ur';
 
+  // Live Database Badge
+  const liveBadge = document.getElementById('liveDatabaseBadge');
+  if (liveBadge) {
+    liveBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> ${isUr ? "لائیو ڈیٹا بیس" : "LIVE DATABASE"}`;
+    liveBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs border border-emerald-500 flex items-center gap-1";
+  }
+
   // Dashboard Headings
   const dashSchoolHeading = document.getElementById('dashSchoolHeading');
   if (dashSchoolHeading) dashSchoolHeading.innerText = isUr && school.name_urdu ? school.name_urdu : (school.name || 'Chitral Model College');

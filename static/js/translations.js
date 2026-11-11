@@ -6,7 +6,8 @@ const TRANSLATIONS = {
     appName: "Chitral EduCloud",
     appTagline: "Smart School ERP & Management System",
     regionTag: "Chitral, KP, Pakistan",
-    demoDataBadge: "DEMO DATA",
+    demoDataBadge: "LIVE DATABASE",
+    liveDatabaseBadge: "LIVE DATABASE",
     searchPlaceholder: "Search student, roll number, challan...",
     allRightsReserved: "All rights reserved. Chitral EduCloud ERP 2026.",
     
@@ -287,7 +288,8 @@ const TRANSLATIONS = {
     appName: "چترال ایجوکلاؤڈ",
     appTagline: "اسمارٹ اسکول مینجمنٹ و ای آر پی سسٹم",
     regionTag: "چترال، خیبر پختونخوا، پاکستان",
-    demoDataBadge: "[ڈیمو ڈیٹا]",
+    demoDataBadge: "لائیو ڈیٹا بیس",
+    liveDatabaseBadge: "لائیو ڈیٹا بیس",
     searchPlaceholder: "طالب علم، رول نمبر، چالان نمبر تلاش کریں...",
     allRightsReserved: "جملہ حقوق محفوظ ہیں۔ چترال ایجوکلاؤڈ ای آر پی 2026۔",
     
