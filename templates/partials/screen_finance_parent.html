@@ -119,6 +119,147 @@
 
         <!-- SUBTAB 1: FEE COLLECTION LEDGER -->
         <div id="feeSubTabCollection" class="space-y-4">
+
+          <!-- DEDICATED QUICK CASHIER DESK: RECORD STUDENT FEE PAYMENT -->
+          <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 sm:p-6 border-2 border-emerald-500/20 shadow-md space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700 gap-2">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white text-sm shadow-md">
+                  <i class="fa-solid fa-cash-register"></i>
+                </div>
+                <div>
+                  <h3 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>Record Student Fee Payment</span>
+                    <span class="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Quick Cashier Desk</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">Professional Pakistani school itemized fee heads collection &amp; instant voucher POS</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-[11px] text-slate-400 font-semibold">Chitral Accounting Session:</span>
+                <span class="font-bold text-emerald-600">2026-2027</span>
+              </div>
+            </div>
+
+            <!-- ROW 1: FILTERS & GLOBAL STUDENT SEARCH -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Collection Mode</label>
+                <select id="cashierCollectionMode" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 font-medium">
+                  <option value="individual">Individual Student</option>
+                  <option value="sibling">Sibling &amp; Family Group</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Select Class</label>
+                <select id="cashierClassFilter" onchange="filterCashierStudents()" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 font-medium">
+                  <option value="all">All Classes</option>
+                  <option value="Grade 10">Grade 10</option>
+                  <option value="Grade 9">Grade 9</option>
+                  <option value="FSc-I Pre-Medical">FSc-I Pre-Medical</option>
+                  <option value="Grade 8">Grade 8</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Select Section</label>
+                <select id="cashierSectionFilter" onchange="filterCashierStudents()" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 font-medium">
+                  <option value="all">All Sections</option>
+                  <option value="A">Section A</option>
+                  <option value="B">Section B</option>
+                  <option value="Pre-Med">Section Pre-Med</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Global Student Search</label>
+                <div class="relative">
+                  <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                  <input type="text" id="cashierSearchInput" oninput="filterCashierStudents()" placeholder="Reg/Adm #, Name, Father..." class="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+                </div>
+              </div>
+            </div>
+
+            <!-- ROW 2: STUDENT SELECTION, TOTAL PENDING & RECEIVING NOW -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
+              <div class="md:col-span-6">
+                <div class="flex items-center justify-between mb-1">
+                  <label class="block font-bold text-slate-800 dark:text-slate-200">Student Name *</label>
+                  <span id="cashierMatchedCountText" class="text-[10px] font-semibold text-emerald-600">Matched: 8 students</span>
+                </div>
+                <select id="cashierStudentSelect" onchange="handleCashierStudentChange()" class="w-full bg-white dark:bg-slate-700 border-2 border-emerald-500/40 rounded-xl px-3 py-2.5 font-bold text-slate-900 dark:text-white shadow-xs focus:ring-2 focus:ring-emerald-500">
+                  <!-- Dynamically populated via JS -->
+                </select>
+              </div>
+              <div class="md:col-span-3">
+                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Total Pending</label>
+                <div class="relative">
+                  <input type="text" id="cashierTotalPending" readonly value="PKR 4,750" class="w-full bg-slate-100 dark:bg-slate-700/80 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5 font-black text-rose-600 dark:text-rose-400 text-sm cursor-not-allowed">
+                </div>
+              </div>
+              <div class="md:col-span-3">
+                <label class="block font-bold text-emerald-700 dark:text-emerald-400 mb-1">Receiving Now *</label>
+                <input type="number" id="cashierReceivingNow" placeholder="Enter amount" value="2250" class="w-full bg-white dark:bg-slate-700 border-2 border-emerald-600 rounded-xl px-3 py-2 font-black text-emerald-600 dark:text-emerald-400 text-sm shadow-xs outline-none focus:ring-2 focus:ring-emerald-500 text-right">
+              </div>
+            </div>
+
+            <!-- ROW 3: ITEMIZED PENDING FEE HEAD DROPDOWN WITH HELPER TEXT -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs items-center bg-slate-50 dark:bg-slate-700/40 p-3 rounded-2xl border border-slate-200 dark:border-slate-600">
+              <div class="md:col-span-7">
+                <label class="block font-bold text-slate-800 dark:text-slate-200 mb-1">
+                  <i class="fa-solid fa-list-check text-emerald-600 mr-1"></i> Select Pending Fee Head:
+                </label>
+                <select id="cashierFeeHeadSelect" onchange="handleCashierFeeHeadChange()" class="w-full bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 font-semibold text-xs text-slate-800 dark:text-slate-200">
+                  <option value="ALL">All Pending Dues (Combined) - PKR 4,750</option>
+                  <option value="Admission / Annual Fund">Admission / Annual Fund - Rs. 2,250</option>
+                  <option value="Current Month Tuition Fee (Nov 2026)">Current Month Tuition Fee (Nov 2026) - Rs. 2,500</option>
+                  <option value="Winter Heating / Fuel Levy">Winter Heating / Fuel Levy - Rs. 1,000</option>
+                  <option value="Previous Arrears / Exam Fee">Previous Arrears / Exam Fee</option>
+                </select>
+              </div>
+              <div class="md:col-span-5 flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-400 italic pt-1 md:pt-4">
+                <i class="fa-solid fa-circle-info text-emerald-600 text-xs"></i>
+                <span id="cashierFeeHeadHelperText">Sirf pending fee heads dropdown mein show honge. Total pending: Rs. 4,750</span>
+              </div>
+            </div>
+
+            <!-- ROW 4: PAYMENT METADATA -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Payment Date</label>
+                <input type="date" id="cashierPaymentDate" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 font-medium">
+              </div>
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Payment Mode</label>
+                <select id="cashierPaymentMode" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 font-medium">
+                  <option value="Cash">Cash at Counter</option>
+                  <option value="JazzCash">JazzCash (Till / Merchant)</option>
+                  <option value="EasyPaisa">EasyPaisa Mobile</option>
+                  <option value="Bank of Khyber">Bank of Khyber (Chitral Branch)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Receipt #</label>
+                <input type="text" id="cashierReceiptNo" placeholder="Auto if empty" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 font-mono">
+              </div>
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Txn / Ref #</label>
+                <input type="text" id="cashierTxnRef" placeholder="Optional transaction ref" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 font-mono">
+              </div>
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Payment Note</label>
+                <input type="text" id="cashierPaymentNote" placeholder="e.g. Paid in cash by father" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2">
+              </div>
+            </div>
+
+            <!-- ROW 5: DUAL ACTION BUTTONS -->
+            <div class="pt-2 flex flex-wrap items-center justify-end gap-2.5">
+              <button type="button" onclick="handleQuickFeePayment(false)" class="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center gap-2 shadow-xs transition">
+                <i class="fa-solid fa-check"></i> Record Only
+              </button>
+              <button type="button" onclick="handleQuickFeePayment(true)" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center gap-2 shadow-md shadow-emerald-600/20 transition">
+                <i class="fa-solid fa-receipt"></i> Receive &amp; Invoice
+              </button>
+            </div>
+          </div>
           <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
             <div class="relative w-full md:w-80">
               <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>

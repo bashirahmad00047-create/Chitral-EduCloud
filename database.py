@@ -107,6 +107,24 @@ def init_db():
     )
     ''')
 
+    # 5b. Fee Items / Heads table (for Itemized Fee Heads Accounting)
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS fee_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        school_id TEXT NOT NULL,
+        challan_id INTEGER NOT NULL,
+        student_id TEXT NOT NULL,
+        head_title TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        paid_amount INTEGER NOT NULL DEFAULT 0,
+        balance INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'UNPAID' CHECK(status IN ('PAID', 'PARTIAL', 'UNPAID')),
+        FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE,
+        FOREIGN KEY (challan_id) REFERENCES fee_challans(id) ON DELETE CASCADE,
+        FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+    )
+    ''')
+
     # 6. Exam Marks table
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS exam_marks (
@@ -182,6 +200,41 @@ def init_db():
     VALUES (?, ?, ?, ?, ?, ?)
     ''', seed_users)
     conn.commit()
+
+    # Seed fee_items if empty
+    cursor.execute("SELECT COUNT(*) FROM fee_items")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("SELECT id, school_id, student_id, total_amount, paid_amount, balance, status FROM fee_challans")
+        all_challans = cursor.fetchall()
+        for ch in all_challans:
+            c_id = ch['id']
+            s_id = ch['school_id']
+            stu_id = ch['student_id']
+            tot = ch['total_amount']
+            is_stu_1001 = (stu_id == 'STU-1001')
+            
+            if is_stu_1001:
+                cursor.execute("UPDATE fee_challans SET total_amount = 4750, balance = 4750, paid_amount = 0, status = 'UNPAID' WHERE id = ?", (c_id,))
+                cursor.execute('''
+                INSERT INTO fee_items (school_id, challan_id, student_id, head_title, amount, paid_amount, balance, status)
+                VALUES (?, ?, ?, 'Admission / Annual Fund', 2250, 0, 2250, 'UNPAID')
+                ''', (s_id, c_id, stu_id))
+                cursor.execute('''
+                INSERT INTO fee_items (school_id, challan_id, student_id, head_title, amount, paid_amount, balance, status)
+                VALUES (?, ?, ?, 'Current Month Tuition Fee (Nov 2026)', 2500, 0, 2500, 'UNPAID')
+                ''', (s_id, c_id, stu_id))
+            else:
+                adm_amt = 2250 if tot >= 4000 else 1000
+                tuition_amt = max(0, tot - adm_amt)
+                cursor.execute('''
+                INSERT INTO fee_items (school_id, challan_id, student_id, head_title, amount, paid_amount, balance, status)
+                VALUES (?, ?, ?, 'Admission / Annual Fund', ?, 0, ?, 'UNPAID')
+                ''', (s_id, c_id, stu_id, adm_amt, adm_amt))
+                cursor.execute('''
+                INSERT INTO fee_items (school_id, challan_id, student_id, head_title, amount, paid_amount, balance, status)
+                VALUES (?, ?, ?, 'Current Month Tuition Fee (Nov 2026)', ?, 0, ?, 'UNPAID')
+                ''', (s_id, c_id, stu_id, tuition_amt, tuition_amt))
+        conn.commit()
 
     # Check if empty -> Seed DB
     cursor.execute("SELECT COUNT(*) FROM schools")
@@ -407,27 +460,65 @@ def create_new_school(school_data):
     ''', (slug, name, name_urdu, campus_city, address, phone, principal_name, session_year, logo_text, bise_code, email, heating_levy))
 
     # Auto-provision Admin account for this school
-    admin_username = f"admin_{slug.replace('-', '_')}"
+    admin_username = (school_data.get('admin_username') or f"admin_{slug.replace('-', '_')}").strip()
+    admin_password = school_data.get('admin_password') or "admin123"
     cursor.execute('''
-    INSERT OR IGNORE INTO users (school_id, username, password_hash, role, full_name, linked_student_id)
+    INSERT OR REPLACE INTO users (school_id, username, password_hash, role, full_name, linked_student_id)
     VALUES (?, ?, ?, 'admin', ?, NULL)
-    ''', (slug, admin_username, generate_password_hash("admin123"), principal_name))
+    ''', (slug, admin_username, generate_password_hash(admin_password), principal_name))
+
+    # Auto-provision Teacher account
+    teacher_username = f"teacher_{slug.replace('-', '_')}"
+    cursor.execute('''
+    INSERT OR REPLACE INTO users (school_id, username, password_hash, role, full_name, linked_student_id)
+    VALUES (?, ?, ?, 'teacher', ?, NULL)
+    ''', (slug, teacher_username, generate_password_hash("teach123"), f"Faculty Incharge ({slug})"))
 
     # Starter student for immediate dashboard usability
+    try:
+        default_tuition = int(school_data.get('default_monthly_fee') or school_data.get('monthly_fee') or 4500)
+    except (ValueError, TypeError):
+        default_tuition = 4500
+
     stu_id = f"STU-{slug[:3].upper()}-01"
     adm_no = f"{logo_text}-2026-001"
     cursor.execute('''
-    INSERT OR IGNORE INTO students (id, school_id, admission_no, roll_no, full_name, name_urdu, father_name, father_name_urdu, gender, class_grade, section, phone, blood_group, address, monthly_fee, status)
-    VALUES (?, ?, ?, '101', 'Shahid Aziz', 'شاہد عزیز', 'Aziz Ullah', 'عزیز اللہ', 'Male', 'Grade 10', 'A', ?, 'B+', ?, 4500, 'Active')
-    ''', (stu_id, slug, adm_no, phone, address))
+    INSERT OR REPLACE INTO students (id, school_id, admission_no, roll_no, full_name, name_urdu, father_name, father_name_urdu, gender, class_grade, section, phone, blood_group, address, monthly_fee, status)
+    VALUES (?, ?, ?, '101', 'Shahid Aziz', 'شاہد عزیز', 'Aziz Ullah', 'عزیز اللہ', 'Male', 'Grade 10', 'A', ?, 'B+', ?, ?, 'Active')
+    ''', (stu_id, slug, adm_no, phone, address, default_tuition))
 
-    # Starter fee challan
-    challan_no = f"CH-{slug[:3].upper()}-1001"
-    total_fee = 4500 + heating_levy
+    # Auto-provision Parent account linked to starter student
+    parent_username = f"parent_{slug.replace('-', '_')}"
     cursor.execute('''
-    INSERT OR IGNORE INTO fee_challans (school_id, student_id, challan_no, month_year, tuition_fee, arrears, total_amount, paid_amount, balance, status)
-    VALUES (?, ?, ?, 'November 2026', 4500, 0, ?, 0, ?, 'UNPAID')
-    ''', (slug, stu_id, challan_no, total_fee, total_fee))
+    INSERT OR REPLACE INTO users (school_id, username, password_hash, role, full_name, linked_student_id)
+    VALUES (?, ?, ?, 'parent', 'Aziz Ullah', ?)
+    ''', (slug, parent_username, generate_password_hash("parent123"), stu_id))
+
+    # Initialize isolated Baileys WhatsApp session directory
+    try:
+        wa_session_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'whatsapp_engine', 'sessions', f"school_{slug}")
+        os.makedirs(wa_session_dir, exist_ok=True)
+    except Exception:
+        pass
+
+    # Starter fee challan & itemized fee heads
+    challan_no = f"CH-{slug[:3].upper()}-1001"
+    adm_fund = 2250
+    tuition_fund = 2500
+    total_fee = adm_fund + tuition_fund
+    cursor.execute('''
+    INSERT OR REPLACE INTO fee_challans (school_id, student_id, challan_no, month_year, tuition_fee, arrears, total_amount, paid_amount, balance, status)
+    VALUES (?, ?, ?, 'November 2026', ?, 0, ?, 0, ?, 'UNPAID')
+    ''', (slug, stu_id, challan_no, tuition_fund, total_fee, total_fee))
+    challan_id = cursor.lastrowid
+
+    if challan_id:
+        cursor.execute('''
+        INSERT INTO fee_items (school_id, challan_id, student_id, head_title, amount, paid_amount, balance, status)
+        VALUES 
+        (?, ?, ?, 'Admission / Annual Fund', ?, 0, ?, 'UNPAID'),
+        (?, ?, ?, 'Current Month Tuition Fee (Nov 2026)', ?, 0, ?, 'UNPAID')
+        ''', (slug, challan_id, stu_id, adm_fund, adm_fund, slug, challan_id, stu_id, tuition_fund, tuition_fund))
 
     conn.commit()
 

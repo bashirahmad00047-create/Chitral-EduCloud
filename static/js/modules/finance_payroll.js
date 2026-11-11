@@ -56,6 +56,8 @@ function openParentPayModal() {
 
 // ==================== SCREEN 9: FEE MANAGEMENT (REST API) ====================
 function renderFeeManagement() {
+  initCashierDesk();
+
   const tbody = document.getElementById('feeCollectionTableBody');
   if (!tbody) return;
 
@@ -122,6 +124,229 @@ function filterFeeTable() {
     const text = r.innerText.toLowerCase();
     r.style.display = text.includes(search) ? '' : 'none';
   });
+}
+
+// ==================== QUICK CASHIER DESK CONTROLLER ====================
+let cashierStudentHeadsCache = {};
+
+function initCashierDesk() {
+  const dateInput = document.getElementById('cashierPaymentDate');
+  if (dateInput && !dateInput.value) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+  }
+  filterCashierStudents();
+}
+
+function filterCashierStudents() {
+  const classFilter = document.getElementById('cashierClassFilter')?.value || 'all';
+  const sectionFilter = document.getElementById('cashierSectionFilter')?.value || 'all';
+  const search = (document.getElementById('cashierSearchInput')?.value || '').toLowerCase().trim();
+  const select = document.getElementById('cashierStudentSelect');
+  const countText = document.getElementById('cashierMatchedCountText');
+  if (!select) return;
+
+  const filtered = (state.students || []).filter(s => {
+    if (classFilter !== 'all' && s.class_grade !== classFilter) return false;
+    if (sectionFilter !== 'all' && s.section !== sectionFilter) return false;
+    if (search) {
+      const matchAdm = (s.admission_no || '').toLowerCase().includes(search);
+      const matchName = (s.full_name || '').toLowerCase().includes(search);
+      const matchFather = (s.father_name || '').toLowerCase().includes(search);
+      const matchPhone = (s.phone || '').toLowerCase().includes(search);
+      const matchRoll = (s.roll_no || '').toLowerCase().includes(search);
+      if (!matchAdm && !matchName && !matchFather && !matchPhone && !matchRoll) return false;
+    }
+    return true;
+  });
+
+  if (countText) {
+    countText.innerText = `Matched: ${filtered.length} student${filtered.length === 1 ? '' : 's'}`;
+  }
+
+  select.innerHTML = '';
+  if (filtered.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.innerText = '-- No students found --';
+    select.appendChild(opt);
+    updateCashierBalanceUI(0, []);
+    return;
+  }
+
+  filtered.forEach(stu => {
+    const opt = document.createElement('option');
+    opt.value = stu.id;
+    opt.innerText = `${stu.full_name} (${stu.admission_no}) - ${stu.class_grade}-${stu.section} (Roll: ${stu.roll_no})`;
+    select.appendChild(opt);
+  });
+
+  handleCashierStudentChange();
+}
+
+async function handleCashierStudentChange() {
+  const select = document.getElementById('cashierStudentSelect');
+  if (!select || !select.value) {
+    updateCashierBalanceUI(0, []);
+    return;
+  }
+
+  const studentId = select.value;
+  const stu = (state.students || []).find(s => s.id === studentId);
+  const ch = (state.challans || []).find(c => c.student_id === studentId) || {};
+
+  try {
+    const res = await fetch(`/api/fees/pending-heads?student_id=${encodeURIComponent(studentId)}&school_id=${encodeURIComponent(state.currentSchoolId)}`);
+    const data = await res.json();
+    if (res.ok && data.success && data.heads && data.heads.length > 0) {
+      cashierStudentHeadsCache[studentId] = data.heads;
+      updateCashierBalanceUI(data.total_pending, data.heads);
+      return;
+    }
+  } catch (e) {
+    console.warn("Could not fetch pending fee heads from API:", e);
+  }
+
+  const fallbackPending = ch.balance !== undefined ? ch.balance : (stu ? stu.monthly_fee : 4750);
+  const fallbackHeads = [
+    { head_title: 'Admission / Annual Fund', balance: Math.min(2250, fallbackPending) },
+    { head_title: 'Current Month Tuition Fee (Nov 2026)', balance: Math.max(0, fallbackPending - 2250) }
+  ].filter(h => h.balance > 0);
+
+  updateCashierBalanceUI(fallbackPending, fallbackHeads);
+}
+
+function updateCashierBalanceUI(totalPending, heads) {
+  const totalInput = document.getElementById('cashierTotalPending');
+  const recvInput = document.getElementById('cashierReceivingNow');
+  const headSelect = document.getElementById('cashierFeeHeadSelect');
+  const helperText = document.getElementById('cashierFeeHeadHelperText');
+
+  if (totalInput) totalInput.value = `PKR ${Number(totalPending).toLocaleString()}`;
+  if (helperText) {
+    helperText.innerText = `Sirf pending fee heads dropdown mein show honge. Total pending: Rs. ${Number(totalPending).toLocaleString()}`;
+  }
+
+  if (headSelect) {
+    headSelect.innerHTML = '';
+    const allOpt = document.createElement('option');
+    allOpt.value = 'ALL';
+    allOpt.innerText = `All Pending Dues (Combined) - PKR ${Number(totalPending).toLocaleString()}`;
+    headSelect.appendChild(allOpt);
+
+    heads.forEach(h => {
+      const opt = document.createElement('option');
+      opt.value = h.head_title;
+      opt.innerText = `${h.head_title} - Rs. ${Number(h.balance).toLocaleString()}`;
+      headSelect.appendChild(opt);
+    });
+
+    if (heads.length > 0) {
+      if (recvInput) recvInput.value = heads[0].balance;
+      headSelect.value = heads[0].head_title;
+    } else {
+      if (recvInput) recvInput.value = totalPending;
+      headSelect.value = 'ALL';
+    }
+  }
+}
+
+function handleCashierFeeHeadChange() {
+  const select = document.getElementById('cashierStudentSelect');
+  const headSelect = document.getElementById('cashierFeeHeadSelect');
+  const recvInput = document.getElementById('cashierReceivingNow');
+  if (!select || !headSelect || !recvInput) return;
+
+  const studentId = select.value;
+  const heads = cashierStudentHeadsCache[studentId] || [];
+  const selectedHead = headSelect.value;
+
+  if (selectedHead === 'ALL') {
+    const totalPending = heads.reduce((sum, h) => sum + h.balance, 0);
+    recvInput.value = totalPending;
+  } else {
+    const found = heads.find(h => h.head_title === selectedHead);
+    if (found) {
+      recvInput.value = found.balance;
+    }
+  }
+}
+
+async function handleQuickFeePayment(openInvoice = false) {
+  const studentSelect = document.getElementById('cashierStudentSelect');
+  const studentId = studentSelect?.value;
+  if (!studentId) {
+    showToast("Please select a student first");
+    return;
+  }
+
+  const recvInput = document.getElementById('cashierReceivingNow');
+  const paidAmount = parseInt(recvInput?.value) || 0;
+  if (paidAmount <= 0) {
+    showToast("Please enter an amount to receive");
+    return;
+  }
+
+  const feeHead = document.getElementById('cashierFeeHeadSelect')?.value || 'ALL';
+  const paymentMode = document.getElementById('cashierPaymentMode')?.value || 'Cash';
+  const paymentDate = document.getElementById('cashierPaymentDate')?.value || new Date().toISOString().split('T')[0];
+  const receiptNo = document.getElementById('cashierReceiptNo')?.value.trim() || `REC-${Date.now().toString().slice(-6)}`;
+  const txnRef = document.getElementById('cashierTxnRef')?.value.trim();
+  const paymentNote = document.getElementById('cashierPaymentNote')?.value.trim();
+
+  const stu = (state.students || []).find(s => s.id === studentId) || {};
+  const ch = (state.challans || []).find(c => c.student_id === studentId) || {};
+
+  try {
+    const res = await fetch('/api/fees/collect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        school_id: state.currentSchoolId,
+        student_id: studentId,
+        challan_no: ch.challan_no,
+        paid_amount: paidAmount,
+        payment_method: paymentMode,
+        fee_head: feeHead,
+        payment_date: paymentDate,
+        payment_note: paymentNote || `Paid via Quick Cashier (${paymentMode})`,
+        receipt_ref: txnRef || receiptNo
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast(data.message || `Received PKR ${paidAmount.toLocaleString()} successfully!`);
+      await loadSchoolData(state.currentSchoolId);
+      await handleCashierStudentChange();
+
+      if (openInvoice) {
+        printThermalReceipt(studentId, data.challan_no || ch.challan_no, {
+          challanNo: data.challan_no || ch.challan_no,
+          studentName: stu.full_name,
+          rollNo: stu.roll_no,
+          classGrade: stu.class_grade,
+          section: stu.section,
+          fatherName: stu.father_name,
+          tuitionAmt: stu.monthly_fee || 4500,
+          heatingAmt: state.school?.heating_levy || 800,
+          examAmt: 0,
+          labAmt: 0,
+          arrearsAmt: 0,
+          concessionAmt: 0,
+          totalPayable: data.total_amount || (paidAmount + (data.new_balance || 0)),
+          paidAmount: paidAmount,
+          balance: data.new_balance || 0,
+          paymentMethod: paymentMode,
+          receiptRef: txnRef || receiptNo,
+          remarks: paymentNote || `Quick Cashier Payment for ${feeHead}`
+        });
+      }
+    } else {
+      showToast(data.error || "Failed to record fee payment");
+    }
+  } catch (err) {
+    showToast("Network error processing quick fee payment");
+  }
 }
 
 function switchFeeSubTab(tab) {

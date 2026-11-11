@@ -210,39 +210,41 @@ function closeAddSchoolModal() {
 async function handleCreateSchool(e) {
   e.preventDefault();
   const name = document.getElementById('newSchoolName').value.trim();
-  const nameUrdu = document.getElementById('newSchoolNameUrdu').value.trim();
   const city = document.getElementById('newSchoolCity').value.trim();
-  const phone = document.getElementById('newSchoolPhone').value.trim();
-  const address = document.getElementById('newSchoolAddress').value.trim();
   const principal = document.getElementById('newSchoolPrincipal').value.trim();
-  const bise = document.getElementById('newSchoolBise').value.trim();
-  const email = document.getElementById('newSchoolEmail').value.trim();
-  const logo = document.getElementById('newSchoolLogo').value.trim();
-  const heating = parseInt(document.getElementById('newSchoolHeating').value) || 800;
+  const phone = document.getElementById('newSchoolPhone').value.trim();
+  const tuition = parseInt(document.getElementById('newSchoolTuition')?.value) || 4500;
+  const adminUser = document.getElementById('newSchoolAdminUser')?.value.trim();
+  const adminPass = document.getElementById('newSchoolAdminPass')?.value.trim() || 'admin123';
 
   try {
-    const res = await fetch('/api/schools', {
+    const res = await fetch('/api/schools/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name,
-        name_urdu: nameUrdu,
         campus_city: city,
-        phone,
-        address,
         principal_name: principal,
-        bise_code: bise,
-        email,
-        logo_text: logo,
-        heating_levy: heating
+        phone,
+        default_monthly_fee: tuition,
+        admin_username: adminUser,
+        admin_password: adminPass
       })
     });
     const data = await res.json();
     if (res.ok && data.success) {
       closeAddSchoolModal();
-      showToast(data.message || `Campus '${name}' successfully onboarded!`);
+      showToast(data.message || `Campus '${name}' successfully registered!`);
       state.currentSchoolId = data.school.id;
       await loadSchoolData(data.school.id);
+      navigateTo('screen-dashboard');
+    } else {
+      showToast(data.error || "Failed to onboard school campus");
+    }
+  } catch (err) {
+    showToast("Network error creating school campus");
+  }
+}
     } else {
       showToast(data.error || "Failed to onboard school campus");
     }

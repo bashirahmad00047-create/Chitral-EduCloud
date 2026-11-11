@@ -52,6 +52,7 @@ def get_all_schools():
     return jsonify({'success': True, 'schools': schools, 'count': len(schools)})
 
 @system_bp.route('/api/schools', methods=['POST'])
+@system_bp.route('/api/schools/create', methods=['POST'])
 @role_required(['admin'])
 def create_school():
     data = request.get_json() or {}

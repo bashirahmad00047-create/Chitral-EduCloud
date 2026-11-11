@@ -9,7 +9,7 @@
             <i class="fa-solid fa-school"></i>
           </div>
           <div>
-            <h3 class="font-extrabold text-base text-slate-900 dark:text-white">Onboard New School Campus</h3>
+            <h3 class="font-extrabold text-base text-slate-900 dark:text-white">Register New School Tenant</h3>
             <p class="text-[11px] text-slate-500 dark:text-slate-400">Unlimited multi-tenant school onboarding for Chitral & KP</p>
           </div>
         </div>
@@ -18,53 +18,49 @@
 
       <form id="addSchoolForm" onsubmit="handleCreateSchool(event)" class="space-y-3.5 text-xs">
         <div>
-          <label class="block font-semibold mb-1">School Full Name (English) *</label>
-          <input type="text" required id="newSchoolName" placeholder="e.g. Pamir Public School & College, Garam Chashma" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">School Name (Urdu)</label>
-          <input type="text" id="newSchoolNameUrdu" dir="rtl" placeholder="مثال: پامیر پبلک اسکول گرم چشمہ" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs font-nastaliq">
+          <label class="block font-semibold mb-1">School Name *</label>
+          <input type="text" required id="newSchoolName" placeholder="e.g., Aga Khan Higher Secondary School Chitral" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block font-semibold mb-1">Campus / Town / Tehsil *</label>
-            <input type="text" required id="newSchoolCity" placeholder="e.g. Garam Chashma, Lotkoh" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
+            <label class="block font-semibold mb-1">Campus / Tehsil *</label>
+            <select id="newSchoolCity" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs font-semibold">
+              <option value="Chitral Town">Chitral Town (Lower Chitral)</option>
+              <option value="Booni">Booni (Upper Chitral)</option>
+              <option value="Drosh">Drosh (Lower Chitral)</option>
+              <option value="Garam Chashma">Garam Chashma (Lotkoh)</option>
+              <option value="Mastuj">Mastuj (Upper Chitral)</option>
+            </select>
           </div>
           <div>
-            <label class="block font-semibold mb-1">Official Contact / WhatsApp *</label>
+            <label class="block font-semibold mb-1">Principal Name *</label>
+            <input type="text" required id="newSchoolPrincipal" placeholder="e.g. Prof. Sher Afzal Khan" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold mb-1">Contact Phone *</label>
             <input type="text" required id="newSchoolPhone" placeholder="+92 345 1234567" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
           </div>
-        </div>
-
-        <div>
-          <label class="block font-semibold mb-1">Campus Physical Address *</label>
-          <input type="text" required id="newSchoolAddress" placeholder="e.g. Main Lotkoh Road, Near Civil Hospital, Garam Chashma" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block font-semibold mb-1">Principal / Administrator Name *</label>
-            <input type="text" required id="newSchoolPrincipal" placeholder="e.g. Prof. Noor Alam Khan" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">BISE Board Affiliation Code</label>
-            <input type="text" id="newSchoolBise" placeholder="e.g. BISE Peshawar #PPS-5501" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
+            <label class="block font-semibold mb-1">Default Monthly Tuition Fee (PKR) *</label>
+            <input type="number" required id="newSchoolTuition" value="4500" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs font-bold text-emerald-600">
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label class="block font-semibold mb-1">Official Email</label>
-            <input type="email" id="newSchoolEmail" placeholder="info@pps-garamchashma.edu.pk" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">Short Logo Code</label>
-            <input type="text" id="newSchoolLogo" placeholder="PPS" maxlength="5" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs uppercase font-bold">
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">Winter Heating Levy (PKR)</label>
-            <input type="number" id="newSchoolHeating" value="800" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
+        <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-200 dark:border-slate-600 space-y-2">
+          <span class="block font-bold text-slate-700 dark:text-slate-300">Admin Account Credentials</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold mb-1">Admin Username *</label>
+              <input type="text" id="newSchoolAdminUser" placeholder="e.g. admin_akhss" class="w-full bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs font-mono">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold mb-1">Admin Password *</label>
+              <input type="password" id="newSchoolAdminPass" value="admin123" placeholder="admin123" class="w-full bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs font-mono">
+            </div>
           </div>
         </div>
 
@@ -72,8 +68,9 @@
           <p class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-600"></i> SQLite Dynamic Provisioning:</p>
           <ul class="list-disc list-inside space-y-0.5 text-[10px]">
             <li>Instantly assigns dedicated tenant slug in <code>schools</code> table.</li>
-            <li>Creates Administrator account (<code>admin_&lt;slug&gt;</code>, password: <code>admin123</code>).</li>
-            <li>Initializes student roster, fee challan engine, and Baileys WhatsApp channel.</li>
+            <li>Creates isolated <code>admin</code>, <code>teacher</code>, and <code>parent</code> user accounts in <code>users</code>.</li>
+            <li>Initializes isolated Baileys WhatsApp session directory (<code>school_&lt;id&gt;</code>).</li>
+            <li>Immediately switches dashboard to newly created campus!</li>
           </ul>
         </div>
 
@@ -240,8 +237,10 @@
       </div>
 
       <div class="text-[11px] text-slate-400 flex items-center justify-center gap-1.5 font-medium">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span>Baileys Socket Pairing &middot; School: <strong id="waModalSchoolId" class="text-emerald-600">chitral-model</strong></span>
+        <span id="waModalStateIndicator" class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold border border-emerald-300 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> LIVE BAILEYS SOCKET QR
+        </span>
+        <span class="text-slate-500">&middot; School: <strong id="waModalSchoolId" class="text-emerald-600">chitral-model</strong></span>
       </div>
 
       <button onclick="closeWhatsAppQrModal()" class="w-full py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-xs transition">

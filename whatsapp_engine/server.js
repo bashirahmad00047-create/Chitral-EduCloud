@@ -31,46 +31,20 @@ function formatToJid(phone) {
   return `${clean}@s.whatsapp.net`;
 }
 
-// Helper: Generate scannable QR Code SVG Data URI
-function generateQrSvgDataUri(payloadText) {
-  const hash = Math.abs(Array.from(payloadText).reduce((acc, c) => acc * 31 + c.charCodeAt(0), 7));
-  const seed = hash.toString(16).padEnd(16, '0');
-  
-  // Clean high-contrast scannable QR code visual representation
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
-    <rect width="200" height="200" fill="#ffffff" rx="12"/>
-    <!-- Position Detection Patterns -->
-    <rect x="15" y="15" width="45" height="45" fill="#065f46" rx="4"/>
-    <rect x="23" y="23" width="29" height="29" fill="#ffffff" rx="2"/>
-    <rect x="29" y="29" width="17" height="17" fill="#065f46"/>
-    
-    <rect x="140" y="15" width="45" height="45" fill="#065f46" rx="4"/>
-    <rect x="148" y="23" width="29" height="29" fill="#ffffff" rx="2"/>
-    <rect x="154" y="29" width="17" height="17" fill="#065f46"/>
-    
-    <rect x="15" y="140" width="45" height="45" fill="#065f46" rx="4"/>
-    <rect x="23" y="148" width="29" height="29" fill="#ffffff" rx="2"/>
-    <rect x="29" y="154" width="17" height="17" fill="#065f46"/>
-    
-    <!-- WhatsApp Center Brand -->
-    <circle cx="100" cy="100" r="18" fill="#10b981"/>
-    <path d="M93 93 L107 100 L93 107 Z" fill="#ffffff"/>
-    
-    <!-- Data Modules Matrix based on session hash -->
-    <rect x="75" y="25" width="12" height="12" fill="#064e3b"/>
-    <rect x="105" y="30" width="16" height="8" fill="#064e3b"/>
-    <rect x="70" y="55" width="20" height="10" fill="#064e3b"/>
-    <rect x="115" y="65" width="14" height="14" fill="#064e3b"/>
-    <rect x="25" y="75" width="14" height="20" fill="#064e3b"/>
-    <rect x="45" y="90" width="18" height="12" fill="#064e3b"/>
-    <rect x="135" y="85" width="22" height="14" fill="#064e3b"/>
-    <rect x="155" y="115" width="20" height="15" fill="#064e3b"/>
-    <rect x="75" y="130" width="18" height="18" fill="#064e3b"/>
-    <rect x="110" y="140" width="24" height="16" fill="#064e3b"/>
-    <rect x="80" y="165" width="45" height="12" fill="#064e3b"/>
-    <rect x="145" y="160" width="15" height="15" fill="#064e3b"/>
-  </svg>`;
-  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+const { execSync } = require('child_process');
+
+// Helper: Generate authentic, dense, scannable QR Code PNG Data URI
+function generateScannableQr(payloadText) {
+  try {
+    const scriptPath = path.join(__dirname, '..', 'utils', 'qr_helper.py');
+    const out = execSync(`python "${scriptPath}" "${payloadText}"`, { timeout: 4000 }).toString().trim();
+    if (out.startsWith('data:image/png;base64,')) {
+      return out;
+    }
+  } catch (err) {
+    console.warn("Scannable QR generator notice:", err.message);
+  }
+  return null;
 }
 
 // Multi-Tenant Session Initializer
@@ -82,7 +56,7 @@ function getOrCreateSession(schoolId) {
     }
 
     const qrPayload = `2@chitral_educloud_gateway,tenant=${schoolId},time=${Date.now()},auth=baileys_session`;
-    const qrDataUrl = generateQrSvgDataUri(qrPayload);
+    const qrDataUrl = generateScannableQr(qrPayload);
 
     sessions[schoolId] = {
       school_id: schoolId,
@@ -162,7 +136,7 @@ const server = http.createServer(async (req, res) => {
     
     // Regenerate QR
     const qrPayload = `2@chitral_educloud_gateway,tenant=${schoolId},time=${Date.now()},auth=baileys_socket`;
-    session.qr_code = generateQrSvgDataUri(qrPayload);
+    session.qr_code = generateScannableQr(qrPayload);
     session.qr_payload = qrPayload;
     session.status = 'QR_READY';
     session.updated_at = new Date().toISOString();

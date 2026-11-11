@@ -458,6 +458,17 @@ async function triggerWhatsAppConnect() {
 
       if (modal) modal.classList.remove('hidden');
 
+      const modalStateIndicator = document.getElementById('waModalStateIndicator');
+      if (modalStateIndicator) {
+        if (data.status === 'CONNECTED') {
+          modalStateIndicator.className = "px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold border border-emerald-300 flex items-center gap-1.5";
+          modalStateIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> LIVE BAILEYS SOCKET QR`;
+        } else {
+          modalStateIndicator.className = "px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold border border-amber-300 flex items-center gap-1.5";
+          modalStateIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> PAIRING HANDSHAKE`;
+        }
+      }
+
       const badge = document.getElementById('waStatusBadge');
       if (badge) {
         badge.className = "px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5";
