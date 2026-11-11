@@ -5,9 +5,12 @@
             <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white" data-i18n="studentSisTitle">Student Information System</h2>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="studentSisSubtitle">Comprehensive student roster, admission records, and enrollment status.</p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <button onclick="exportStudentsCsv()" class="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center gap-2 shadow-xs">
               <i class="fa-solid fa-file-excel text-emerald-600"></i> <span data-i18n="btnExportCsv">Export CSV</span>
+            </button>
+            <button onclick="openPromoteClassModal()" class="px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/40 dark:hover:bg-teal-900 border border-teal-300 dark:border-teal-700 text-teal-800 dark:text-teal-300 text-xs font-bold transition flex items-center gap-2 shadow-xs" title="Promote passing students to next grade (سالانہ ترقی)">
+              <i class="fa-solid fa-arrow-trend-up text-teal-600"></i> <span>Promote Class (سالانہ ترقی)</span>
             </button>
             <button onclick="openAddStudentModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-sm">
               <i class="fa-solid fa-user-plus"></i> <span data-i18n="btnAddStudent">+ Add New Student</span>
@@ -91,13 +94,19 @@
           </div>
           <!-- Profile Action Buttons -->
           <div class="flex flex-wrap items-center gap-2">
-            <button onclick="viewStudentIdCard(currentSelectedStudentId)" class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-xs font-bold hover:bg-purple-100 transition flex items-center gap-2">
+            <button onclick="openStudentCertificateModal(state.currentSelectedStudentId, 'leaving')" class="px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold hover:bg-amber-100 transition flex items-center gap-1.5" title="Print Official School Leaving Certificate">
+              <i class="fa-solid fa-graduation-cap text-amber-600"></i> <span>Leaving Cert</span>
+            </button>
+            <button onclick="openStudentCertificateModal(state.currentSelectedStudentId, 'character')" class="px-3 py-2 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 text-xs font-bold hover:bg-teal-100 transition flex items-center gap-1.5" title="Print Official Character & Conduct Certificate">
+              <i class="fa-solid fa-certificate text-teal-600"></i> <span>Character Cert</span>
+            </button>
+            <button onclick="viewStudentIdCard(state.currentSelectedStudentId)" class="px-3 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-xs font-bold hover:bg-purple-100 transition flex items-center gap-1.5">
               <i class="fa-solid fa-qrcode"></i> <span data-i18n="navIdCard">Digital ID Card</span>
             </button>
-            <button onclick="viewStudentDmc(currentSelectedStudentId)" class="px-3.5 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-bold hover:bg-rose-100 transition flex items-center gap-2">
-              <i class="fa-solid fa-file-invoice"></i> <span data-i18n="navDmc">View DMC Report</span>
+            <button onclick="viewStudentDmc(state.currentSelectedStudentId)" class="px-3 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-bold hover:bg-rose-100 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-file-invoice"></i> <span data-i18n="navDmc">View DMC</span>
             </button>
-            <button onclick="openCollectFeeModal(currentSelectedStudentId)" class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500 transition flex items-center gap-2 shadow-xs">
+            <button onclick="openCollectFeeModal(state.currentSelectedStudentId)" class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500 transition flex items-center gap-1.5 shadow-xs">
               <i class="fa-solid fa-receipt"></i> <span data-i18n="tabFeeCollection">Fee Ledger</span>
             </button>
           </div>

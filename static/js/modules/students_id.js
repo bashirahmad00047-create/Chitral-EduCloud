@@ -161,6 +161,7 @@ async function handleAddNewStudent(e) {
   const phone = document.getElementById('newStuPhone').value;
   const village = document.getElementById('newStuVillage').value || "Chitral Town";
   const tuition = parseInt(document.getElementById('newStuTuition').value) || 4500;
+  const discount = parseInt(document.getElementById('newStuDiscount')?.value) || 0;
   const blood = document.getElementById('newStuBlood').value;
 
   try {
@@ -177,6 +178,7 @@ async function handleAddNewStudent(e) {
         phone: phone,
         address: village,
         monthly_fee: tuition,
+        discount_amount: discount,
         blood_group: blood
       })
     });
@@ -414,6 +416,97 @@ function printIdCard() {
   }, 1000);
 }
 
+// ==================== ANNUAL CLASS PROMOTION ====================
+function openPromoteClassModal() {
+  const modal = document.getElementById('modalPromoteClass');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closePromoteClassModal() {
+  const modal = document.getElementById('modalPromoteClass');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function handlePromoteClass(e) {
+  e.preventDefault();
+  const fromClass = document.getElementById('promoteFromClass').value;
+  const toClass = document.getElementById('promoteToClass').value;
+
+  try {
+    const res = await fetch('/api/students/promote-class', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        school_id: state.currentSchoolId,
+        from_class: fromClass,
+        to_class: toClass
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      closePromoteClassModal();
+      showToast(data.message || `Promoted students from ${fromClass} to ${toClass}!`);
+      await loadSchoolData(state.currentSchoolId);
+    } else {
+      showToast(data.error || "Failed to promote class");
+    }
+  } catch (err) {
+    showToast("Network error executing class promotion");
+  }
+}
+
+// ==================== OFFICIAL STUDENT CERTIFICATES ====================
+async function openStudentCertificateModal(studentId, certType = 'leaving') {
+  const targetId = studentId || state.currentSelectedStudentId;
+  try {
+    const res = await fetch(`/api/students/${targetId}/certificate?type=${encodeURIComponent(certType)}`);
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      showToast("Certificate data not found");
+      return;
+    }
+
+    const c = data.certificate;
+    const modal = document.getElementById('modalStudentCertificate');
+    if (!modal) return;
+
+    document.getElementById('certModalHeaderTitle').innerText = c.certificate_title;
+    document.getElementById('certDocTitle').innerText = c.certificate_title;
+    document.getElementById('certSchoolName').innerText = c.school_name || 'Chitral Model College';
+    document.getElementById('certBiseCode').innerText = c.bise_code;
+    document.getElementById('certSchoolAddress').innerText = c.school_address || 'Chitral Town, KP';
+    document.getElementById('certSerialNo').innerText = c.serial_no;
+    document.getElementById('certIssueDate').innerText = c.issue_date;
+    document.getElementById('certStudentName').innerText = c.student_name;
+    document.getElementById('certFatherName').innerText = c.father_name;
+    document.getElementById('certAdmNo').innerText = c.admission_no;
+    document.getElementById('certRollNo').innerText = c.roll_no;
+    document.getElementById('certClassGrade').innerText = `${c.class_grade} - ${c.section}`;
+    document.getElementById('certAdmDate').innerText = c.admission_date;
+    document.getElementById('certLeavingDate').innerText = c.leaving_date;
+    document.getElementById('certConduct').innerText = c.conduct;
+    document.getElementById('certReason').innerText = c.reason_for_leaving;
+    document.getElementById('certPrincipalName').innerText = c.principal_name || 'Prof. Rehmat Ullah Baig';
+
+    modal.classList.remove('hidden');
+  } catch (err) {
+    showToast("Error loading student certificate");
+  }
+}
+
+function closeStudentCertModal() {
+  const modal = document.getElementById('modalStudentCertificate');
+  if (modal) modal.classList.add('hidden');
+}
+
+function printCertificateDoc() {
+  document.body.classList.add('printing-certificate');
+  window.print();
+  setTimeout(() => {
+    document.body.classList.remove('printing-certificate');
+  }, 1000);
+}
+
 // Global window bindings
 window.renderStudentsTable = renderStudentsTable;
 window.filterStudents = filterStudents;
@@ -425,5 +518,12 @@ window.renderStudentProfile = renderStudentProfile;
 window.selectStudentProfile = selectStudentProfile;
 window.renderIdCardScreen = renderIdCardScreen;
 window.printIdCard = printIdCard;
+window.openPromoteClassModal = openPromoteClassModal;
+window.closePromoteClassModal = closePromoteClassModal;
+window.handlePromoteClass = handlePromoteClass;
+window.openStudentCertificateModal = openStudentCertificateModal;
+window.closeStudentCertModal = closeStudentCertModal;
+window.printCertificateDoc = printCertificateDoc;
+
 
 

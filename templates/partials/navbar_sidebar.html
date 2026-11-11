@@ -109,20 +109,20 @@
           <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider px-3 mb-2" data-i18n="navOverview">OVERVIEW</p>
           <ul class="space-y-1">
             <li>
-              <button onclick="navigateTo('screen-dashboard')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-dashboard">
+              <button onclick="switchTab('screen-dashboard')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-tab="screen-dashboard" data-screen="screen-dashboard">
                 <i class="fa-solid fa-chart-pie w-4 text-center text-emerald-600"></i>
                 <span data-i18n="navDashboard">Admin Dashboard</span>
                 <span class="ml-auto text-[9px] bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-bold px-1.5 py-0.5 rounded">ERP</span>
               </button>
             </li>
             <li>
-              <button onclick="navigateTo('screen-teacher')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-teacher">
+              <button onclick="switchTab('screen-teacher')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-tab="screen-teacher" data-screen="screen-teacher">
                 <i class="fa-solid fa-chalkboard-user w-4 text-center text-teal-600"></i>
                 <span data-i18n="navTeacherPortal">Teacher Workspace</span>
               </button>
             </li>
             <li>
-              <button onclick="navigateTo('screen-parent')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-parent">
+              <button onclick="switchTab('screen-parent')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-tab="screen-parent" data-screen="screen-parent">
                 <i class="fa-solid fa-mobile-screen-button w-4 text-center text-indigo-600"></i>
                 <span data-i18n="navParentPortal">Parent Mobile Portal</span>
                 <span class="ml-auto text-[9px] bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold px-1.5 py-0.5 rounded">App</span>
@@ -136,38 +136,38 @@
           <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider px-3 mb-2" data-i18n="navAcademic">ACADEMICS & SIS</p>
           <ul class="space-y-1">
             <li>
-              <button onclick="navigateTo('screen-students')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-students">
+              <button onclick="switchTab('screen-students')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-tab="screen-students" data-screen="screen-students">
                 <i class="fa-solid fa-users w-4 text-center text-emerald-600"></i>
                 <span data-i18n="navStudents">Student SIS</span>
               </button>
             </li>
             <li>
-              <button onclick="navigateTo('screen-profile')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-profile">
+              <button onclick="switchTab('screen-profile')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-tab="screen-profile" data-screen="screen-profile">
                 <i class="fa-solid fa-id-badge w-4 text-center text-blue-600"></i>
                 <span data-i18n="navProfile">Student 360° Profile</span>
               </button>
             </li>
             <li>
-              <button onclick="navigateTo('screen-idcard')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-idcard">
+              <button onclick="switchTab('screen-idcard')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-tab="screen-idcard" data-screen="screen-idcard">
                 <i class="fa-solid fa-qrcode w-4 text-center text-purple-600"></i>
                 <span data-i18n="navIdCard">Digital ID Card</span>
                 <span class="ml-auto text-[9px] bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-bold px-1.5 py-0.5 rounded">QR</span>
               </button>
             </li>
             <li>
-              <button onclick="navigateTo('screen-attendance')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-attendance">
+              <button onclick="switchTab('screen-attendance')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-tab="screen-attendance" data-screen="screen-attendance">
                 <i class="fa-solid fa-calendar-check w-4 text-center text-emerald-600"></i>
                 <span data-i18n="navAttendance">Attendance Sheet</span>
               </button>
             </li>
             <li>
-              <button onclick="navigateTo('screen-exams')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-exams">
+              <button onclick="switchTab('screen-exams')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-tab="screen-exams" data-screen="screen-exams">
                 <i class="fa-solid fa-clipboard-list w-4 text-center text-amber-600"></i>
                 <span data-i18n="navExams">Exams & Results</span>
               </button>
             </li>
             <li>
-              <button onclick="navigateTo('screen-dmc')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-dmc">
+              <button onclick="switchTab('screen-dmc')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-tab="screen-dmc" data-screen="screen-dmc">
                 <i class="fa-solid fa-file-invoice w-4 text-center text-rose-600"></i>
                 <span data-i18n="navDmc">Printable DMC</span>
                 <span class="ml-auto text-[9px] bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-bold px-1.5 py-0.5 rounded">PDF</span>
@@ -181,27 +181,27 @@
           <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider px-3 mb-2" data-i18n="navFinancial">FINANCE & ACCOUNTS</p>
           <ul class="space-y-1">
             <li>
-              <button onclick="navigateTo('screen-fees')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-fees">
+              <button onclick="switchTab('screen-fees')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-tab="screen-fees" data-screen="screen-fees">
                 <i class="fa-solid fa-cash-register w-4 text-center text-emerald-600"></i>
                 <span data-i18n="navFees">Fee Management</span>
                 <span class="ml-auto text-[9px] bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-bold px-1.5 py-0.5 rounded">POS</span>
               </button>
             </li>
             <li>
-              <button onclick="navigateTo('screen-alerts')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-alerts">
+              <button onclick="switchTab('screen-alerts')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-tab="screen-alerts" data-screen="screen-alerts">
                 <i class="fa-brands fa-whatsapp w-4 text-center text-emerald-500"></i>
                 <span data-i18n="navAlerts">WhatsApp / SMS Hub</span>
                 <span class="ml-auto text-[9px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold px-1.5 py-0.5 rounded flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>AI Bot</span>
               </button>
             </li>
             <li>
-              <button onclick="navigateTo('screen-settings')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-settings">
+              <button onclick="switchTab('screen-settings')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-tab="screen-settings" data-screen="screen-settings">
                 <i class="fa-solid fa-sliders w-4 text-center text-slate-500"></i>
                 <span data-i18n="navSettings">School Settings</span>
               </button>
             </li>
             <li>
-              <button onclick="navigateTo('screen-login')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-screen="screen-login">
+              <button onclick="switchTab('screen-login')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition" data-tab="screen-login" data-screen="screen-login">
                 <i class="fa-solid fa-arrow-right-from-bracket w-4 text-center text-slate-400"></i>
                 <span data-i18n="navLogin">Login / Switch Tenant</span>
               </button>
@@ -237,23 +237,23 @@
 
     <!-- MOBILE BOTTOM NAVIGATION BAR -->
     <nav id="bottomNav" class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-slate-800/95 glass-header border-t border-slate-200 dark:border-slate-700 px-3 py-2 flex items-center justify-around z-30 shadow-lg">
-      <button onclick="navigateTo('screen-dashboard')" class="flex flex-col items-center text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600">
+      <button onclick="switchTab('screen-dashboard')" data-tab="screen-dashboard" class="flex flex-col items-center text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600">
         <i class="fa-solid fa-chart-pie text-base mb-0.5"></i>
         <span>Admin</span>
       </button>
-      <button onclick="navigateTo('screen-students')" class="flex flex-col items-center text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600">
+      <button onclick="switchTab('screen-students')" data-tab="screen-students" class="flex flex-col items-center text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600">
         <i class="fa-solid fa-users text-base mb-0.5"></i>
         <span>SIS</span>
       </button>
-      <button onclick="navigateTo('screen-attendance')" class="flex flex-col items-center text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600">
+      <button onclick="switchTab('screen-attendance')" data-tab="screen-attendance" class="flex flex-col items-center text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600">
         <i class="fa-solid fa-calendar-check text-base mb-0.5"></i>
         <span>Attend</span>
       </button>
-      <button onclick="navigateTo('screen-fees')" class="flex flex-col items-center text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600">
+      <button onclick="switchTab('screen-fees')" data-tab="screen-fees" class="flex flex-col items-center text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600">
         <i class="fa-solid fa-receipt text-base mb-0.5"></i>
         <span>Fees</span>
       </button>
-      <button onclick="navigateTo('screen-parent')" class="flex flex-col items-center text-[10px] font-bold text-emerald-600">
+      <button onclick="switchTab('screen-parent')" data-tab="screen-parent" class="flex flex-col items-center text-[10px] font-bold text-emerald-600">
         <i class="fa-solid fa-mobile-screen text-base mb-0.5"></i>
         <span>Parent</span>
       </button>

@@ -224,3 +224,114 @@ def pay_staff():
         'message': f'Salary for staff member {emp_id} marked as PAID in SQLite!',
         'paid_date': paid_date
     })
+
+# ==================== DAILY EXPENSE & CASHBOOK (روزنامچہ آمدن و اخراجات) ====================
+
+@finance_bp.route('/api/expenses', methods=['GET'])
+def get_expenses():
+    school_id = request.args.get('school_id', 'chitral-model')
+    conn = database.get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT * FROM expenses
+    WHERE school_id = ?
+    ORDER BY expense_date DESC, id DESC
+    ''', (school_id,))
+    expenses = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    return jsonify({'success': True, 'expenses': expenses, 'count': len(expenses)})
+
+@finance_bp.route('/api/expenses/add', methods=['POST'])
+@role_required(['admin'])
+def add_expense():
+    data = request.get_json() or {}
+    school_id = data.get('school_id', 'chitral-model')
+    category = (data.get('category') or 'General Expense').strip()
+    title = (data.get('title') or '').strip()
+    try:
+        amount = int(data.get('amount', 0))
+    except (ValueError, TypeError):
+        amount = 0
+
+    if not title or amount <= 0:
+        return jsonify({'error': 'Valid expense title and amount (PKR) are required'}), 400
+
+    paid_to = (data.get('paid_to') or '').strip()
+    expense_date = data.get('expense_date') or datetime.now().strftime('%Y-%m-%d')
+    receipt_no = data.get('receipt_no') or f"EXP-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    payment_mode = data.get('payment_mode') or 'Cash'
+    notes = data.get('notes') or ''
+
+    conn = database.get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+    INSERT INTO expenses (school_id, category, title, amount, paid_to, expense_date, receipt_no, payment_mode, notes)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (school_id, category, title, amount, paid_to, expense_date, receipt_no, payment_mode, notes))
+    exp_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        'success': True,
+        'message': f'Expense of PKR {amount:,} recorded in Daily Cashbook (روزنامچہ)!',
+        'expense_id': exp_id,
+        'receipt_no': receipt_no
+    })
+
+@finance_bp.route('/api/expenses/cashbook-summary', methods=['GET'])
+def get_cashbook_summary():
+    school_id = request.args.get('school_id', 'chitral-model')
+    conn = database.get_db()
+    cursor = conn.cursor()
+
+    # 1. Total fee income collected
+    cursor.execute('''
+    SELECT COALESCE(SUM(paid_amount), 0) as total_income
+    FROM fee_challans
+    WHERE school_id = ?
+    ''', (school_id,))
+    total_income = cursor.fetchone()['total_income']
+
+    # 2. Total expenses
+    cursor.execute('''
+    SELECT COALESCE(SUM(amount), 0) as total_expense
+    FROM expenses
+    WHERE school_id = ?
+    ''', (school_id,))
+    total_expense = cursor.fetchone()['total_expense']
+
+    # 3. Net cash in hand
+    net_cash = total_income - total_expense
+
+    # 4. Expenses by category
+    cursor.execute('''
+    SELECT category, SUM(amount) as cat_total, COUNT(*) as count
+    FROM expenses
+    WHERE school_id = ?
+    GROUP BY category
+    ORDER BY cat_total DESC
+    ''', (school_id,))
+    by_category = [dict(r) for r in cursor.fetchall()]
+
+    # 5. Recent 10 expenses
+    cursor.execute('''
+    SELECT * FROM expenses
+    WHERE school_id = ?
+    ORDER BY expense_date DESC, id DESC
+    LIMIT 10
+    ''', (school_id,))
+    recent_expenses = [dict(r) for r in cursor.fetchall()]
+
+    conn.close()
+
+    return jsonify({
+        'success': True,
+        'school_id': school_id,
+        'total_income': total_income,
+        'total_expense': total_expense,
+        'net_cash': net_cash,
+        'by_category': by_category,
+        'recent_expenses': recent_expenses
+    })
+

@@ -119,6 +119,34 @@
     padding: 0 !important;
     max-width: 100% !important;
   }
+
+  /* 5. Print Mode: Official Student Certificate (Leaving & Character) */
+  body.printing-certificate .screen-view,
+  body.printing-certificate header,
+  body.printing-certificate aside {
+    display: none !important;
+  }
+
+  body.printing-certificate #modalStudentCertificate {
+    display: block !important;
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  body.printing-certificate #modalStudentCertificate > div {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  body.printing-certificate #certificatePrintTarget {
+    border: 3px double #000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    margin: 0 auto !important;
+  }
 }
 
 /* RTL Typography enhancements */

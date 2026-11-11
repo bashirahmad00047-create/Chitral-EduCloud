@@ -135,10 +135,14 @@
             <input type="text" id="newStuVillage" placeholder="e.g. Booni, Upper Chitral" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2">
           </div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block font-semibold mb-1">Monthly Tuition Fee (PKR)</label>
             <input type="number" id="newStuTuition" value="4500" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1 text-emerald-700 dark:text-emerald-300">Scholarship / Sibling Discount (PKR)</label>
+            <input type="number" id="newStuDiscount" value="0" placeholder="0" class="w-full bg-emerald-50 dark:bg-slate-700 border border-emerald-300 dark:border-slate-600 rounded-xl px-3 py-2 font-bold text-emerald-700 dark:text-emerald-300">
           </div>
           <div>
             <label class="block font-semibold mb-1">Blood Group</label>
@@ -276,6 +280,229 @@
         <span class="text-emerald-600 font-semibold">Chitral EduCloud Spotlight</span>
       </div>
 
+    </div>
+  </div>
+
+  <!-- MODAL: ADD NEW SCHOOL EXPENSE (روزنامچہ خرچہ) -->
+  <div id="modalAddExpense" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-7 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white text-sm shadow-md">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base text-slate-900 dark:text-white">Record Daily School Expense</h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Daily Cashbook Ledger &middot; روزنامچہ اخراجات</p>
+          </div>
+        </div>
+        <button onclick="closeAddExpenseModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form id="addExpenseForm" onsubmit="handleAddExpense(event)" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-semibold mb-1">Expense Category *</label>
+          <select id="newExpCategory" required class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs font-semibold">
+            <option value="Winter Heating & Fuel">Winter Heating & Fuel (لکڑی و ایندھن)</option>
+            <option value="Generator & Utilities">Generator & Utilities (ڈیزل و بجلی)</option>
+            <option value="Stationery & Printing">Stationery & Printing (امتحانی پیپرز و کتابیں)</option>
+            <option value="Staff Refreshments">Staff Refreshments (اساتذہ چائے و راشن)</option>
+            <option value="Campus Maintenance">Campus Maintenance (مرمت و صفائی)</option>
+            <option value="Science & Computer Lab">Science & Computer Lab (لیب کا سامان)</option>
+            <option value="Sports & Co-Curricular">Sports & Co-Curricular (کھیل و سرگرمیاں)</option>
+            <option value="Other Operational Cost">Other Operational Cost (متفرق اخراجات)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1">Expense Title / Description *</label>
+          <input type="text" required id="newExpTitle" placeholder="e.g., 20 Maund Winter Firewood for Classrooms" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold mb-1">Amount (PKR) *</label>
+            <input type="number" required id="newExpAmount" placeholder="e.g. 14500" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs font-black text-rose-600">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Paid To (Vendor / Person) *</label>
+            <input type="text" required id="newExpPaidTo" placeholder="e.g. Sultan Timber Depot" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block font-semibold mb-1">Expense Date</label>
+            <input type="date" id="newExpDate" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs font-medium">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Payment Mode</label>
+            <select id="newExpMode" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
+              <option value="Cash">Cash at Hand</option>
+              <option value="JazzCash">JazzCash</option>
+              <option value="EasyPaisa">EasyPaisa</option>
+              <option value="Bank of Khyber">Bank of Khyber</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Voucher / Bill #</label>
+            <input type="text" id="newExpReceiptNo" placeholder="Auto if empty" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1">Additional Notes</label>
+          <input type="text" id="newExpNotes" placeholder="Optional notes (e.g., approved by Principal)" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs">
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-2">
+          <button type="button" onclick="closeAddExpenseModal()" class="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-300 font-semibold text-xs">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-floppy-disk"></i> Save Expense to Cashbook
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PROMOTE CLASS (سالانہ ترقی) -->
+  <div id="modalPromoteClass" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-600 flex items-center justify-center text-white text-sm shadow-md">
+            <i class="fa-solid fa-arrow-trend-up"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base text-slate-900 dark:text-white">Annual Class Promotion</h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">سالانہ کلاس ترقی و اگلے تعلیمی سیشن میں اندراج</p>
+          </div>
+        </div>
+        <button onclick="closePromoteClassModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form id="promoteClassForm" onsubmit="handlePromoteClass(event)" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-semibold mb-1">Current Class (Promote From) *</label>
+          <select id="promoteFromClass" required class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs font-semibold">
+            <option value="Grade 9">Grade 9 (Promote to Grade 10)</option>
+            <option value="Grade 10">Grade 10 (Promote to FSc-I Pre-Med / Alumni)</option>
+            <option value="FSc-I Pre-Medical">FSc-I Pre-Medical (Promote to FSc-II)</option>
+            <option value="Grade 8">Grade 8 (Promote to Grade 9)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1">Target Next Class (Promote To) *</label>
+          <select id="promoteToClass" required class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs font-semibold">
+            <option value="Grade 10">Grade 10</option>
+            <option value="FSc-I Pre-Medical">FSc-I Pre-Medical</option>
+            <option value="FSc-II Pre-Medical">FSc-II Pre-Medical</option>
+            <option value="Alumni / Graduated">Alumni / Graduated (پاس آؤٹ طالب علم)</option>
+          </select>
+        </div>
+
+        <div class="p-3 bg-teal-50 dark:bg-teal-950/40 rounded-2xl border border-teal-200 dark:border-teal-800 text-[11px] text-teal-800 dark:text-teal-300 space-y-1">
+          <p class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-teal-600"></i> Automatic SQLite Update:</p>
+          <p class="text-[10px]">All active students currently enrolled in the source class will have their <code>class_grade</code> field upgraded in SQLite, retaining their roll numbers and attendance history.</p>
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-2">
+          <button type="button" onclick="closePromoteClassModal()" class="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-300 font-semibold text-xs">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs flex items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-check"></i> Execute Promotion (ترقی دیں)
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: OFFICIAL STUDENT CERTIFICATE (LEAVING & CHARACTER) -->
+  <div id="modalStudentCertificate" class="fixed inset-0 bg-slate-900/70 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto p-6 sm:p-7 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-award text-amber-500 text-lg"></i>
+          <div>
+            <h3 class="font-extrabold text-base text-slate-900 dark:text-white" id="certModalHeaderTitle">Official School Certificate</h3>
+            <p class="text-xs text-slate-400">Authenticated with School Seal &amp; Principal Signature</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="printCertificateDoc()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition">
+            <i class="fa-solid fa-print"></i> Print Certificate
+          </button>
+          <button type="button" onclick="closeStudentCertModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+      </div>
+
+      <!-- Printable Certificate Layout -->
+      <div id="certificatePrintTarget" class="p-6 bg-white text-slate-900 border-4 border-double border-slate-900 rounded-2xl space-y-5 font-sans relative overflow-hidden shadow-inner">
+        <!-- Certificate Watermark / Header -->
+        <div class="text-center border-b-2 border-slate-900 pb-4 space-y-1">
+          <div class="flex items-center justify-center gap-2">
+            <i class="fa-solid fa-graduation-cap text-2xl text-emerald-800"></i>
+            <h2 class="text-xl sm:text-2xl font-black uppercase tracking-wide text-slate-950" id="certSchoolName">Chitral Model College &amp; School</h2>
+          </div>
+          <p class="text-xs font-bold text-slate-600" id="certBiseCode">Affiliated with BISE Peshawar &middot; Reg #CMC-4819</p>
+          <p class="text-[11px] text-slate-500" id="certSchoolAddress">Ataliq Bazaar Road, Chitral Town, Khyber Pakhtunkhwa, Pakistan</p>
+          <div class="pt-2">
+            <span class="inline-block px-4 py-1 rounded-full bg-slate-900 text-white text-xs font-black tracking-widest uppercase shadow-xs" id="certDocTitle">School Leaving Certificate</span>
+          </div>
+        </div>
+
+        <!-- Serial & Issue Date -->
+        <div class="flex justify-between text-xs font-bold text-slate-600 border-b border-slate-200 pb-2">
+          <span>Serial #: <strong class="text-slate-950" id="certSerialNo">SLC-2026-0412</strong></span>
+          <span>Date of Issue: <strong class="text-slate-950" id="certIssueDate">12 November, 2026</strong></span>
+        </div>
+
+        <!-- Certificate Body Narrative -->
+        <div class="text-xs sm:text-sm leading-relaxed space-y-3 py-2 text-slate-800">
+          <p>
+            This is to officially certify that <strong><span class="underline decoration-slate-400 decoration-1 text-slate-950" id="certStudentName">Aliyan Ali</span></strong>, 
+            Son / Daughter of <strong><span class="underline decoration-slate-400 decoration-1 text-slate-950" id="certFatherName">Mir Wazir Khan</span></strong>, 
+            bearing Admission No. <strong><span class="font-mono" id="certAdmNo">CMC-2024-0412</span></strong> 
+            and Roll No. <strong><span class="font-mono" id="certRollNo">101</span></strong>, was a bona fide student of this prestigious institution.
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+            <div>Class of Enrollment: <strong id="certClassGrade">Grade 10 - Section A</strong></div>
+            <div>Date of Admission: <strong id="certAdmDate">10 April, 2024</strong></div>
+            <div>Date of Leaving / Conclusion: <strong id="certLeavingDate">12 November, 2026</strong></div>
+            <div>School Dues Status: <strong class="text-emerald-700">All Dues Cleared in Full (بغیر بقایاجات)</strong></div>
+          </div>
+          <p>
+            <strong>Moral Conduct &amp; Character:</strong> 
+            During his / her academic stay at this institution, his / her conduct and moral demeanor have been found to be 
+            <strong><span class="text-emerald-800" id="certConduct">Exemplary / Very Good (نہایت عمدہ و تسلی بخش)</span></strong>. 
+            He / She took active part in academic curricular studies and student co-curricular activities.
+          </p>
+          <p>
+            <strong>Reason for Leaving:</strong> <span id="certReason">Completed Course of Study / Passed BISE Board Examination</span>.
+          </p>
+          <p class="text-xs italic text-slate-500">
+            We wish him / her all success in his / her future higher education and career endeavors.
+          </p>
+        </div>
+
+        <!-- Signatures & Official Seal Row -->
+        <div class="pt-8 flex items-end justify-between text-xs border-t border-slate-300">
+          <div class="text-center space-y-1">
+            <div class="w-32 border-b border-slate-700 mx-auto"></div>
+            <p class="font-bold text-[11px]">Class Teacher</p>
+          </div>
+          <div class="text-center">
+            <div class="w-20 h-20 rounded-full border-2 border-dashed border-emerald-700 flex items-center justify-center text-[9px] text-emerald-800 font-bold uppercase mx-auto">
+              School Seal
+            </div>
+          </div>
+          <div class="text-center space-y-1">
+            <div class="w-36 border-b border-slate-700 mx-auto"></div>
+            <p class="font-bold text-[11px]" id="certPrincipalName">Prof. Rehmat Ullah Baig</p>
+            <p class="text-[10px] text-slate-500">Principal / Head of Institution</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

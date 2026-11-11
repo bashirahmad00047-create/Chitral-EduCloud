@@ -350,18 +350,122 @@ async function handleQuickFeePayment(openInvoice = false) {
 }
 
 function switchFeeSubTab(tab) {
-  const subtabs = ['collection', 'challans', 'payroll'];
+  const subtabs = ['collection', 'challans', 'payroll', 'cashbook'];
   subtabs.forEach(t => {
     const el = document.getElementById(`feeSubTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
     const btn = document.getElementById(`feeSubTabBtn${t.charAt(0).toUpperCase() + t.slice(1, 4)}`);
+    const btnFull = document.getElementById(`feeSubTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+    const activeBtn = btn || btnFull;
     if (t === tab) {
       if (el) el.classList.remove('hidden');
-      if (btn) btn.className = "px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold transition shadow-xs";
+      if (activeBtn) activeBtn.className = "px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold transition shadow-xs";
     } else {
       if (el) el.classList.add('hidden');
-      if (btn) btn.className = "px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 transition";
+      if (activeBtn) activeBtn.className = "px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 transition";
     }
   });
+
+  if (tab === 'cashbook') {
+    renderCashbookSummary();
+  }
+}
+
+async function renderCashbookSummary() {
+  try {
+    const res = await fetch(`/api/expenses/cashbook-summary?school_id=${encodeURIComponent(state.currentSchoolId)}`);
+    const data = await res.json();
+    if (!res.ok || !data.success) return;
+
+    const incEl = document.getElementById('cashbookTotalIncome');
+    const expEl = document.getElementById('cashbookTotalExpense');
+    const netEl = document.getElementById('cashbookNetCash');
+    const tbody = document.getElementById('cashbookExpensesTableBody');
+
+    if (incEl) incEl.innerText = `PKR ${Number(data.total_income || 0).toLocaleString()}`;
+    if (expEl) expEl.innerText = `PKR ${Number(data.total_expense || 0).toLocaleString()}`;
+    if (netEl) netEl.innerText = `PKR ${Number(data.net_cash || 0).toLocaleString()}`;
+
+    if (tbody && data.recent_expenses) {
+      if (data.recent_expenses.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">No expenses recorded yet for this campus.</td></tr>`;
+      } else {
+        tbody.innerHTML = data.recent_expenses.map(exp => `
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40 transition">
+            <td class="p-3.5 font-mono text-slate-500">${exp.expense_date}</td>
+            <td class="p-3.5 font-bold">
+              <span class="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-600">
+                ${exp.category}
+              </span>
+            </td>
+            <td class="p-3.5 font-semibold text-slate-800 dark:text-slate-100">${exp.title}</td>
+            <td class="p-3.5 text-slate-600 dark:text-slate-300">${exp.paid_to || '-'}</td>
+            <td class="p-3.5 font-mono text-[11px] text-slate-400">${exp.receipt_no || '-'}</td>
+            <td class="p-3.5"><span class="px-2 py-0.5 rounded text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold">${exp.payment_mode || 'Cash'}</span></td>
+            <td class="p-3.5 text-right font-black text-rose-600 dark:text-rose-400">PKR ${Number(exp.amount).toLocaleString()}</td>
+          </tr>
+        `).join('');
+      }
+    }
+  } catch (err) {
+    console.warn("Cashbook load notice:", err);
+  }
+}
+
+function openAddExpenseModal() {
+  const modal = document.getElementById('modalAddExpense');
+  if (modal) {
+    modal.classList.remove('hidden');
+    const dateInput = document.getElementById('newExpDate');
+    if (dateInput && !dateInput.value) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+    }
+  }
+}
+
+function closeAddExpenseModal() {
+  const modal = document.getElementById('modalAddExpense');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function handleAddExpense(event) {
+  event.preventDefault();
+  const category = document.getElementById('newExpCategory').value;
+  const title = document.getElementById('newExpTitle').value.trim();
+  const amount = parseInt(document.getElementById('newExpAmount').value) || 0;
+  const paidTo = document.getElementById('newExpPaidTo').value.trim();
+  const date = document.getElementById('newExpDate').value;
+  const mode = document.getElementById('newExpMode').value;
+  const receiptNo = document.getElementById('newExpReceiptNo').value.trim();
+  const notes = document.getElementById('newExpNotes').value.trim();
+
+  try {
+    const res = await fetch('/api/expenses/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        school_id: state.currentSchoolId,
+        category: category,
+        title: title,
+        amount: amount,
+        paid_to: paidTo,
+        expense_date: date,
+        payment_mode: mode,
+        receipt_no: receiptNo,
+        notes: notes
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      closeAddExpenseModal();
+      document.getElementById('addExpenseForm').reset();
+      showToast(data.message || `Expense of PKR ${amount.toLocaleString()} recorded!`);
+      await renderCashbookSummary();
+    } else {
+      showToast(data.error || "Failed to record expense");
+    }
+  } catch (err) {
+    showToast("Network error recording expense");
+  }
 }
 
 async function triggerBulkChallanGen() {
@@ -978,5 +1082,11 @@ window.print3CopyBankChallan = print3CopyBankChallan;
 window.closeBankChallanModal = closeBankChallanModal;
 window.print3CopyChallanDoc = print3CopyChallanDoc;
 window.sendBulkWaFeeReminders = sendBulkWaFeeReminders;
+window.switchFeeSubTab = switchFeeSubTab;
+window.renderCashbookSummary = renderCashbookSummary;
+window.openAddExpenseModal = openAddExpenseModal;
+window.closeAddExpenseModal = closeAddExpenseModal;
+window.handleAddExpense = handleAddExpense;
+
 
 

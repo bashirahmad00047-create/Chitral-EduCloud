@@ -440,21 +440,32 @@ async function handleUserLogout() {
   showToast("Logged out of Chitral EduCloud ERP");
 }
 
-// ==================== NAVIGATION ROUTER & COMMAND PALETTE ====================
+// ==================== BULLET-PROOF NAVIGATION ROUTER & COMMAND PALETTE ====================
+function normalizeScreenId(id) {
+  if (!id) return 'screen-dashboard';
+  let clean = String(id).trim().replace(/^#/, '');
+  if (!clean.startsWith('screen-')) {
+    clean = 'screen-' + clean;
+  }
+  return clean;
+}
+
 function initNavigation() {
   const sidebarBtn = document.getElementById('sidebarToggleBtn');
   if (sidebarBtn) {
     sidebarBtn.addEventListener('click', toggleMobileSidebar);
   }
 
-  // Safe dynamic listener binding for all nav buttons
-  document.querySelectorAll('.nav-item').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const scr = btn.getAttribute('data-screen');
-      if (scr) {
-        navigateTo(scr);
+  // Bullet-proof event delegation: catches any click on [data-tab], [data-screen], or .nav-item
+  document.addEventListener('click', (e) => {
+    const navBtn = e.target.closest('[data-tab], [data-screen], .nav-item');
+    if (navBtn) {
+      const tabTarget = navBtn.getAttribute('data-tab') || navBtn.getAttribute('data-screen');
+      if (tabTarget) {
+        e.preventDefault();
+        switchTab(tabTarget);
       }
-    });
+    }
   });
 
   // Global Keyboard Shortcuts (Ctrl + K / Cmd + K for Command Palette, Esc to close)
@@ -468,6 +479,8 @@ function initNavigation() {
       if (typeof closeAddStudentModal === 'function') closeAddStudentModal();
       if (typeof closeWhatsAppQrModal === 'function') closeWhatsAppQrModal();
       if (typeof closeBankChallanModal === 'function') closeBankChallanModal();
+      if (typeof closeStudentCertModal === 'function') closeStudentCertModal();
+      if (typeof closePromoteClassModal === 'function') closePromoteClassModal();
     }
   });
 }
@@ -479,8 +492,9 @@ function toggleMobileSidebar() {
   if (backdrop) backdrop.classList.toggle('hidden');
 }
 
-function navigateTo(screenId) {
-  if (!screenId) return;
+function switchTab(rawScreenId) {
+  if (!rawScreenId) return;
+  const screenId = normalizeScreenId(rawScreenId);
   state.currentScreen = screenId;
 
   // 1. Hide all screens
@@ -493,12 +507,13 @@ function navigateTo(screenId) {
   if (target) {
     target.classList.remove('hidden');
   } else {
-    console.warn(`Screen element with id #${screenId} not found`);
+    console.warn(`Target screen element with id #${screenId} not found in DOM`);
   }
 
-  // 3. Update active sidebar nav button styling with Ultra-Premium SaaS Active Class
+  // 3. Highlight active nav button using SaaS active class
   document.querySelectorAll('.nav-item').forEach(btn => {
-    if (btn.getAttribute('data-screen') === screenId) {
+    const btnTarget = btn.getAttribute('data-tab') || btn.getAttribute('data-screen');
+    if (btnTarget && normalizeScreenId(btnTarget) === screenId) {
       btn.classList.add('nav-item-active', 'bg-emerald-50', 'dark:bg-slate-700', 'text-emerald-700', 'dark:text-emerald-400');
     } else {
       btn.classList.remove('nav-item-active', 'bg-emerald-50', 'dark:bg-slate-700', 'text-emerald-700', 'dark:text-emerald-400');
@@ -520,6 +535,9 @@ function navigateTo(screenId) {
   const mainContent = document.getElementById('mainContent');
   if (mainContent) mainContent.scrollTop = 0;
 }
+
+// Alias navigateTo to switchTab for full backwards-compatibility
+const navigateTo = switchTab;
 
 function renderScreen(screenId) {
   try {
@@ -547,6 +565,7 @@ function renderScreen(screenId) {
         break;
       case 'screen-fees':
         if (typeof renderFeeManagement === 'function') renderFeeManagement();
+        if (typeof renderCashbookSummary === 'function') renderCashbookSummary();
         break;
       case 'screen-exams':
         if (typeof renderExamMarksGrid === 'function') renderExamMarksGrid();
@@ -562,7 +581,7 @@ function renderScreen(screenId) {
         break;
     }
   } catch (err) {
-    console.error(`Error rendering screen ${screenId}:`, err);
+    console.error(`Safe recovery: Error rendering screen ${screenId}:`, err);
   }
 }
 
@@ -703,7 +722,8 @@ const ROLE_PERMISSIONS = {
 function applyRolePermissions(role) {
   const allowed = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.admin;
   document.querySelectorAll('.nav-item').forEach(btn => {
-    const screen = btn.getAttribute('data-screen');
+    const raw = btn.getAttribute('data-tab') || btn.getAttribute('data-screen');
+    const screen = raw ? normalizeScreenId(raw) : null;
     if (screen && !allowed.includes(screen)) {
       btn.style.display = 'none';
     } else {
@@ -713,7 +733,9 @@ function applyRolePermissions(role) {
 }
 
 // ==================== GLOBAL WINDOW BINDINGS ====================
-window.navigateTo = navigateTo;
+window.switchTab = switchTab;
+window.navigateTo = switchTab;
+window.normalizeScreenId = normalizeScreenId;
 window.renderScreen = renderScreen;
 window.setRole = setRole;
 window.switchSchool = switchSchool;

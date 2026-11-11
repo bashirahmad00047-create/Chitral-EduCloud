@@ -104,7 +104,7 @@
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="feeSubtitle">Fee vouchers, challan generation, arrears ledger, and teacher payroll.</p>
           </div>
           <!-- Fee Action Tabs -->
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <button onclick="switchFeeSubTab('collection')" id="feeSubTabBtnCol" class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold transition shadow-xs">
               <i class="fa-solid fa-receipt mr-1"></i> <span data-i18n="tabFeeCollection">Collect Fee</span>
             </button>
@@ -113,6 +113,9 @@
             </button>
             <button onclick="switchFeeSubTab('payroll')" id="feeSubTabBtnPay" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 transition">
               <i class="fa-solid fa-money-check mr-1"></i> <span data-i18n="tabPayroll">Payroll</span>
+            </button>
+            <button onclick="switchFeeSubTab('cashbook')" id="feeSubTabBtnCashbook" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 transition">
+              <i class="fa-solid fa-book-journal-whills mr-1 text-emerald-600"></i> <span>Cashbook (روزنامچہ)</span>
             </button>
           </div>
         </div>
@@ -361,6 +364,83 @@
                 </thead>
                 <tbody id="payrollTableBody" class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-200">
                   <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBTAB 4: DAILY EXPENSE & CASHBOOK (روزنامچہ آمدن و اخراجات) -->
+        <div id="feeSubTabCashbook" class="hidden space-y-5">
+          <!-- Cashbook 3 KPI Metrics -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center text-xl shadow-xs">
+                <i class="fa-solid fa-cash-register"></i>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Fee Income (آمدنی)</p>
+                <h3 class="text-xl font-black text-slate-900 dark:text-white mt-0.5" id="cashbookTotalIncome">PKR 0</h3>
+                <span class="text-[10px] text-emerald-600 font-semibold"><i class="fa-solid fa-arrow-up mr-0.5"></i> Live Challan Receipts</span>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center text-xl shadow-xs">
+                <i class="fa-solid fa-money-bill-transfer"></i>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Expenses (اخراجات)</p>
+                <h3 class="text-xl font-black text-slate-900 dark:text-white mt-0.5" id="cashbookTotalExpense">PKR 0</h3>
+                <span class="text-[10px] text-rose-600 font-semibold"><i class="fa-solid fa-arrow-down mr-0.5"></i> Daily Operating Costs</span>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border-2 border-emerald-500/40 shadow-sm flex items-center gap-4 bg-gradient-to-tr from-emerald-50/30 to-teal-50/20 dark:from-emerald-950/20 dark:to-teal-950/10">
+              <div class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xl shadow-md shadow-emerald-600/20">
+                <i class="fa-solid fa-vault"></i>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Net Cash in Hand (خالص بچت)</p>
+                <h3 class="text-xl font-black text-emerald-700 dark:text-emerald-300 mt-0.5" id="cashbookNetCash">PKR 0</h3>
+                <span class="text-[10px] text-slate-400 font-medium">Reconciled Cash in Office</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cashbook Action Header & Expense List -->
+          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>Daily Expenses &amp; Cashbook (روزنامچہ آمدن و اخراجات)</span>
+                  <span class="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Live SQLite Ledger</span>
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Winter heating, diesel, stationery, lab repairs, and daily school maintenance expenses</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="openAddExpenseModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition">
+                  <i class="fa-solid fa-plus"></i> <span>+ Record Expense (اندراج خرچہ)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Expenses Table -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                  <tr>
+                    <th class="p-3.5">Date</th>
+                    <th class="p-3.5">Expense Category</th>
+                    <th class="p-3.5">Expense Title / Description</th>
+                    <th class="p-3.5">Paid To (Vendor)</th>
+                    <th class="p-3.5">Receipt #</th>
+                    <th class="p-3.5">Mode</th>
+                    <th class="p-3.5 text-right">Amount (PKR)</th>
+                  </tr>
+                </thead>
+                <tbody id="cashbookExpensesTableBody" class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-200">
+                  <!-- Injected dynamically via JS -->
                 </tbody>
               </table>
             </div>

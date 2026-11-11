@@ -138,6 +138,7 @@ def add_student():
     blood_group = data.get('blood_group', 'O+')
     address = data.get('address', 'Chitral Town')
     monthly_fee = int(data.get('monthly_fee', 4500))
+    discount_amount = int(data.get('discount_amount', 0))
 
     if not full_name or not father_name:
         return jsonify({'error': 'Student name and Father name are required'}), 400
@@ -150,9 +151,9 @@ def add_student():
 
     # Insert Student
     cursor.execute('''
-    INSERT INTO students (id, school_id, admission_no, roll_no, full_name, name_urdu, father_name, father_name_urdu, gender, class_grade, section, phone, blood_group, address, monthly_fee, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (student_id, school_id, admission_no, roll_no, full_name, full_name, father_name, father_name, 'Male', class_grade, section, phone, blood_group, address, monthly_fee, 'Active'))
+    INSERT INTO students (id, school_id, admission_no, roll_no, full_name, name_urdu, father_name, father_name_urdu, gender, class_grade, section, phone, blood_group, address, monthly_fee, discount_amount, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (student_id, school_id, admission_no, roll_no, full_name, full_name, father_name, father_name, 'Male', class_grade, section, phone, blood_group, address, monthly_fee, discount_amount, 'Active'))
 
     # Auto-generate initial Fee Challan
     challan_no = f"CH-2026-{int(datetime.now().timestamp()) % 10000:04d}"
@@ -221,6 +222,81 @@ def delete_student(student_id):
     conn.commit()
     conn.close()
     return jsonify({'success': True, 'message': 'Student deleted successfully from SQLite'})
+
+# ==================== ANNUAL CLASS PROMOTION (سالانہ ترقی) ====================
+@student_bp.route('/api/students/promote-class', methods=['POST'])
+@role_required(['admin'])
+def promote_class():
+    data = request.get_json() or {}
+    school_id = data.get('school_id', 'chitral-model')
+    from_class = (data.get('from_class') or '').strip()
+    to_class = (data.get('to_class') or '').strip()
+
+    if not from_class or not to_class:
+        return jsonify({'error': 'Source class (from_class) and Target class (to_class) are required'}), 400
+
+    conn = database.get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+    UPDATE students
+    SET class_grade = ?
+    WHERE school_id = ? AND class_grade = ? AND status = 'Active'
+    ''', (to_class, school_id, from_class))
+    promoted_count = cursor.rowcount
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        'success': True,
+        'message': f'Successfully promoted {promoted_count} students from {from_class} to {to_class}!',
+        'promoted_count': promoted_count,
+        'from_class': from_class,
+        'to_class': to_class
+    })
+
+# ==================== OFFICIAL CERTIFICATES (LEAVING & CHARACTER) ====================
+@student_bp.route('/api/students/<student_id>/certificate', methods=['GET'])
+def get_student_certificate(student_id):
+    cert_type = request.args.get('type', 'leaving')  # 'leaving' or 'character'
+    conn = database.get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT s.*, sc.name as school_name, sc.principal_name, sc.bise_code, sc.phone as school_phone, sc.address as school_address
+    FROM students s
+    JOIN schools sc ON s.school_id = sc.id
+    WHERE s.id = ?
+    ''', (student_id,))
+    stu = cursor.fetchone()
+    conn.close()
+
+    if not stu:
+        return jsonify({'error': 'Student not found'}), 404
+
+    stu_dict = dict(stu)
+    today_str = datetime.now().strftime('%d %B, %Y')
+    cert_data = {
+        'certificate_type': cert_type,
+        'certificate_title': 'School Leaving Certificate' if cert_type == 'leaving' else 'Character & Conduct Certificate',
+        'serial_no': f"SLC-{datetime.now().year}-{stu_dict['admission_no']}",
+        'issue_date': today_str,
+        'student_name': stu_dict['full_name'],
+        'student_name_urdu': stu_dict.get('name_urdu') or stu_dict['full_name'],
+        'father_name': stu_dict['father_name'],
+        'father_name_urdu': stu_dict.get('father_name_urdu') or stu_dict['father_name'],
+        'admission_no': stu_dict['admission_no'],
+        'roll_no': stu_dict['roll_no'],
+        'class_grade': stu_dict['class_grade'],
+        'section': stu_dict['section'],
+        'school_name': stu_dict['school_name'],
+        'bise_code': stu_dict['bise_code'] or 'BISE Malakand / Peshawar Registered',
+        'principal_name': stu_dict['principal_name'],
+        'admission_date': str(stu_dict.get('created_at', '2024-04-10'))[:10],
+        'leaving_date': today_str,
+        'conduct': 'Exemplary / Very Good (نہایت عمدہ و بااخلاق)',
+        'reason_for_leaving': 'Completed Course of Study / Passed BISE Board Examination',
+        'remarks': 'Dues cleared in full. We wish him/her success in all future academic pursuits.'
+    }
+    return jsonify({'success': True, 'certificate': cert_data})
 
 # ==================== PUBLIC QR VERIFICATION BADGE ====================
 @student_bp.route('/verify/student/<admission_no>', methods=['GET'])

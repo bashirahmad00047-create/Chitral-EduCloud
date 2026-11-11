@@ -184,6 +184,30 @@ def init_db():
     )
     ''')
 
+    # 9. Daily Expenses & Cashbook (روزنامچہ آمدن و اخراجات)
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS expenses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        school_id TEXT NOT NULL,
+        category TEXT NOT NULL,
+        title TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        paid_to TEXT,
+        expense_date TEXT NOT NULL,
+        receipt_no TEXT,
+        payment_mode TEXT DEFAULT 'Cash',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE
+    )
+    ''')
+
+    # Migration: Ensure discount_amount column exists on students
+    try:
+        cursor.execute("ALTER TABLE students ADD COLUMN discount_amount INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+
     conn.commit()
 
     # Ensure default Phase 4 seed users exist
@@ -234,6 +258,22 @@ def init_db():
                 INSERT INTO fee_items (school_id, challan_id, student_id, head_title, amount, paid_amount, balance, status)
                 VALUES (?, ?, ?, 'Current Month Tuition Fee (Nov 2026)', ?, 0, ?, 'UNPAID')
                 ''', (s_id, c_id, stu_id, tuition_amt, tuition_amt))
+        conn.commit()
+
+    # Seed expenses if empty
+    cursor.execute("SELECT COUNT(*) FROM expenses")
+    if cursor.fetchone()[0] == 0:
+        sample_expenses = [
+            ("chitral-model", "Winter Heating & Fuel", "Winter Wood & Heating Fuel (لکڑی و بکرول)", 14500, "Sultan Timber Depot Chitral", "2026-10-10", "EXP-2026-001", "Cash", "Pre-winter classroom heating supply"),
+            ("chitral-model", "Generator & Utilities", "Generator Diesel & Engine Oil (ڈیزل جنریٹر)", 8200, "PSO Chitral Bypass", "2026-10-11", "EXP-2026-002", "Cash", "Load-shedding power backup fuel"),
+            ("chitral-model", "Stationery & Printing", "Mid-Term Question Papers & Answer Booklets (پیپرز)", 6400, "Iqbal Printing Press Ataliq Bazaar", "2026-10-08", "EXP-2026-003", "Cash", "Term exam stationery printing"),
+            ("chitral-model", "Staff Refreshments", "Teachers & Staff Tea / Refreshment (اساتذہ چائے)", 3100, "Madina Tea Store Chitral", "2026-10-12", "EXP-2026-004", "Cash", "Monthly staff tea & sugar ration"),
+            ("chitral-model", "Campus Maintenance", "Plumbing & Science Lab Repair (مرمت لیب)", 4200, "Farooq Hardware & Electric", "2026-10-09", "EXP-2026-005", "Cash", "Chemistry lab tap & glassware repair")
+        ]
+        cursor.executemany('''
+        INSERT INTO expenses (school_id, category, title, amount, paid_to, expense_date, receipt_no, payment_mode, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', sample_expenses)
         conn.commit()
 
     # Check if empty -> Seed DB
