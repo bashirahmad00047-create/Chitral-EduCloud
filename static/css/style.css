@@ -1,0 +1,195 @@
+/* Chitral EduCloud / Smart School ERP - Enterprise Custom Stylesheet */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
+
+:root {
+  --primary-emerald: #059669;
+  --primary-dark: #047857;
+  --primary-light: #10b981;
+  --accent-teal: #0d9488;
+  --font-en: 'Plus Jakarta Sans', sans-serif;
+  --font-ur: 'Noto Nastaliq Urdu', 'Noto Sans Arabic', sans-serif;
+}
+
+body {
+  font-family: var(--font-en);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Urdu & RTL Typography adjustments */
+[dir="rtl"] {
+  font-family: var(--font-ur);
+  text-align: right;
+}
+
+[dir="rtl"] input,
+[dir="rtl"] select,
+[dir="rtl"] textarea {
+  text-align: right;
+}
+
+[dir="rtl"] .font-nastaliq {
+  font-family: 'Noto Nastaliq Urdu', serif;
+  line-height: 2.2;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+/* Glassmorphism & Accents */
+.glass-header {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Badge Glows */
+.badge-glow-emerald {
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+}
+
+.badge-glow-rose {
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.25);
+}
+
+.badge-glow-amber {
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+/* Student ID Card Dimensions (Standard CR80 PVC) */
+.id-card-pvc {
+  width: 320px;
+  height: 480px;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+/* Thermal POS Receipt Design */
+.thermal-receipt {
+  width: 80mm;
+  font-family: 'Courier New', Courier, monospace;
+  background-color: #fff;
+  color: #111;
+  padding: 12px;
+  border: 1px dashed #94a3b8;
+  margin: 0 auto;
+}
+
+/* A4 Bank Challan 3-Copy Grid */
+.bank-challan-3copy {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  background: white;
+}
+
+/* Printing rules */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+  }
+
+  /* Hide navigation, sidebar, headers, controls */
+  header,
+  aside,
+  nav,
+  #bottomNav,
+  .no-print,
+  button,
+  .print-hide {
+    display: none !important;
+  }
+
+  /* Display print target only */
+  #mainContent {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .print-only-container {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+  }
+
+  .print-break-before {
+    page-break-before: always;
+  }
+
+  .print-avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* Specific ID Card print styling */
+  body.printing-id-card .id-card-print-target {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    gap: 20px !important;
+    padding: 20px !important;
+  }
+
+  body.printing-id-card .id-card-pvc {
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    page-break-inside: avoid;
+  }
+
+  /* Specific DMC print styling */
+  body.printing-dmc .dmc-print-target {
+    display: block !important;
+    padding: 24px !important;
+    border: 3px double #0f172a !important;
+  }
+
+  /* Specific Receipt print styling */
+  body.printing-receipt .thermal-receipt {
+    width: 100% !important;
+    max-width: 80mm !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+}
+
+/* Smooth Tab transitions */
+.screen-view {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Urdu Nastaliq text baseline spacing */
+.rtl-nav-item {
+  letter-spacing: 0px;
+}
