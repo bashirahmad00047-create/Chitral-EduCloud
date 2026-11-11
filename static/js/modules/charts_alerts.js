@@ -152,6 +152,9 @@ function renderAlertsHub() {
   });
 
   renderBroadcastHistory();
+  if (typeof refreshWhatsAppStatus === 'function') {
+    refreshWhatsAppStatus();
+  }
 }
 
 function selectBroadcastTemplate(template) {
@@ -369,4 +372,119 @@ function sendWhatsAppAbsenceAlert(studentId) {
     `Please notify the school administration if this was due to illness or weather in Chitral. Shukriya!`;
 
   sendDirectWhatsAppMessage(stu.phone, msg, `Absence Alert - ${stu.full_name}`);
+}
+
+// ==================== BASHFLOW MULTI-TENANT WA & GEMINI AI CONTROLLER ====================
+async function refreshWhatsAppStatus() {
+  const schoolId = state.currentSchoolId || 'chitral-model';
+  const label = document.getElementById('waSchoolSessionLabel');
+  const badge = document.getElementById('waStatusBadge');
+  const phoneText = document.getElementById('waLinkedPhoneText');
+
+  if (label) label.innerText = schoolId;
+
+  try {
+    const res = await fetch(`/api/wa/status?school_id=${encodeURIComponent(schoolId)}`);
+    const data = await res.json();
+    if (res.ok && data.success) {
+      if (phoneText) phoneText.innerText = data.phone || '+92 345 9821455';
+      if (badge) {
+        if (data.status === 'CONNECTED') {
+          badge.className = "px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5";
+          badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> CONNECTED`;
+        } else if (data.status === 'QR_READY') {
+          badge.className = "px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5";
+          badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> QR READY`;
+        } else {
+          badge.className = "px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 text-slate-700 border border-slate-300 flex items-center gap-1.5";
+          badge.innerHTML = `DISCONNECTED`;
+        }
+      }
+      showToast(`WhatsApp status: ${data.status}`);
+    }
+  } catch (err) {
+    console.warn("WhatsApp status check:", err);
+  }
+}
+
+async function triggerWhatsAppConnect() {
+  const schoolId = state.currentSchoolId || 'chitral-model';
+  showToast("Requesting pairing QR from Baileys engine...");
+
+  try {
+    const res = await fetch('/api/wa/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ school_id: schoolId })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      const modal = document.getElementById('modalWhatsAppQr');
+      const qrImg = document.getElementById('waModalQrImg');
+      const schoolLabel = document.getElementById('waModalSchoolId');
+
+      if (qrImg && data.qr_code) qrImg.src = data.qr_code;
+      if (schoolLabel) schoolLabel.innerText = schoolId;
+      if (modal) modal.classList.remove('hidden');
+
+      const badge = document.getElementById('waStatusBadge');
+      if (badge) {
+        badge.className = "px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> QR READY`;
+      }
+    }
+  } catch (err) {
+    showToast("Failed to generate WhatsApp QR code");
+  }
+}
+
+function closeWhatsAppQrModal() {
+  const modal = document.getElementById('modalWhatsAppQr');
+  if (modal) modal.classList.add('hidden');
+}
+
+function setSampleAiQuery(text) {
+  const input = document.getElementById('aiParentQueryInput');
+  if (input) {
+    input.value = text;
+    runAiSimulatorQuery();
+  }
+}
+
+async function runAiSimulatorQuery() {
+  const input = document.getElementById('aiParentQueryInput');
+  const output = document.getElementById('aiSimulatorOutputBox');
+  const query = input ? input.value.trim() : '';
+
+  if (!query) {
+    showToast("Please enter a parent question to simulate");
+    return;
+  }
+
+  if (output) {
+    output.innerHTML = `<span class="text-purple-600 font-bold animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Gemini AI analyzing SQLite records...</span>`;
+  }
+
+  try {
+    const res = await fetch('/api/ai/parent-query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        school_id: state.currentSchoolId || 'chitral-model',
+        sender_phone: '0345-9821455',
+        message_text: query
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      if (output) {
+        output.innerText = data.reply_text;
+      }
+      showToast("AI response generated from SQLite database!");
+    } else {
+      if (output) output.innerText = "Error generating AI response.";
+    }
+  } catch (err) {
+    if (output) output.innerText = "Failed to connect to AI parent responder.";
+  }
 }

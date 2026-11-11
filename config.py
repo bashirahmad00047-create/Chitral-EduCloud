@@ -9,3 +9,5 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     JSON_SORT_KEYS = False
+    WHATSAPP_ENGINE_URL = os.environ.get('WHATSAPP_ENGINE_URL', 'http://127.0.0.1:5055')
+    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')

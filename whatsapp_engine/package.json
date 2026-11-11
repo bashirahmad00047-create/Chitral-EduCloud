@@ -1,0 +1,25 @@
+{
+  "name": "chitral-educloud-whatsapp-engine",
+  "version": "1.0.0",
+  "description": "Bashflow Multi-Tenant Baileys WhatsApp Gateway & AI Responder for Chitral Schools",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "baileys",
+    "chitral-educloud",
+    "gemini-ai",
+    "multi-tenant"
+  ],
+  "author": "Chitral EduCloud Team",
+  "license": "ISC",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.18",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "pino": "^9.2.0",
+    "qrcode": "^1.5.3"
+  }
+}

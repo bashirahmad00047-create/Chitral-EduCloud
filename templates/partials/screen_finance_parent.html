@@ -231,6 +231,99 @@
           </div>
         </div>
 
+        <!-- BASHFLOW MULTI-TENANT WHATSAPP & AI ENGINE CONTROL PANEL -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Card 1: Live WhatsApp Device Link -->
+          <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-emerald-500/30 shadow-md space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg shadow-sm">
+                  <i class="fa-brands fa-whatsapp"></i>
+                </div>
+                <div>
+                  <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Baileys WhatsApp Socket</h3>
+                  <p class="text-[11px] text-slate-400">Multi-tenant session: <span id="waSchoolSessionLabel" class="font-bold text-emerald-600">chitral-model</span></p>
+                </div>
+              </div>
+              <span id="waStatusBadge" class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> CONNECTED
+              </span>
+            </div>
+
+            <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-200 dark:border-slate-600 text-xs space-y-1.5">
+              <div class="flex justify-between">
+                <span class="text-slate-500 dark:text-slate-400">Linked WhatsApp Phone:</span>
+                <span id="waLinkedPhoneText" class="font-bold text-slate-900 dark:text-white">+92 345 9821455</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500 dark:text-slate-400">Microservice Port:</span>
+                <span class="font-mono text-emerald-600 font-bold">5055 (Active)</span>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <button onclick="triggerWhatsAppConnect()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition">
+                <i class="fa-solid fa-qrcode"></i> Generate QR / Link
+              </button>
+              <button onclick="refreshWhatsAppStatus()" class="px-3 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl hover:bg-slate-200 transition" title="Refresh Socket Status">
+                <i class="fa-solid fa-arrows-rotate"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 2: Background Auto-Trigger Rules -->
+          <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-3">
+            <div class="flex items-center gap-2 mb-1">
+              <i class="fa-solid fa-bolt text-amber-500"></i>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white">Auto-Trigger Rules</h3>
+            </div>
+            <p class="text-[11px] text-slate-400">Automated background triggers dispatched via Baileys socket.</p>
+
+            <div class="space-y-2.5 text-xs pt-1">
+              <label class="flex items-center gap-2.5 p-2 bg-slate-50 dark:bg-slate-700/40 rounded-xl cursor-pointer hover:bg-slate-100 transition">
+                <input type="checkbox" id="autoWaAbsentToggle" checked class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                <span class="font-semibold text-slate-800 dark:text-slate-200">Auto-send WhatsApp on Absent ('A')</span>
+              </label>
+
+              <label class="flex items-center gap-2.5 p-2 bg-slate-50 dark:bg-slate-700/40 rounded-xl cursor-pointer hover:bg-slate-100 transition">
+                <input type="checkbox" id="autoWaFeeToggle" checked class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                <span class="font-semibold text-slate-800 dark:text-slate-200">Auto-send WhatsApp on Fee Collection</span>
+              </label>
+
+              <label class="flex items-center gap-2.5 p-2 bg-slate-50 dark:bg-slate-700/40 rounded-xl cursor-pointer hover:bg-slate-100 transition">
+                <input type="checkbox" id="enableAiBotToggle" checked class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                <span class="font-semibold text-slate-800 dark:text-slate-200">Enable Gemini AI Auto-Reply Bot (24/7)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Card 3: Live AI Chatbot Simulator Box -->
+          <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-purple-500/30 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">Gemini AI Simulator</h3>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-100 text-purple-800">Bilingual Bot</span>
+            </div>
+
+            <div class="flex flex-wrap gap-1 text-[10px]">
+              <button onclick="setSampleAiQuery('Mere bache ki fee kitni baqi hai?')" class="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-purple-100 hover:text-purple-700">Fee Query</button>
+              <button onclick="setSampleAiQuery('Check attendance for roll no 101')" class="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-purple-100 hover:text-purple-700">Attendance</button>
+              <button onclick="setSampleAiQuery('Result aur marks bata dain?')" class="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-purple-100 hover:text-purple-700">Exam Marks</button>
+            </div>
+
+            <div class="flex gap-1.5">
+              <input type="text" id="aiParentQueryInput" placeholder="Type sample parent question..." class="flex-1 p-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-purple-500">
+              <button onclick="runAiSimulatorQuery()" class="px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition">Ask</button>
+            </div>
+
+            <div id="aiSimulatorOutputBox" class="p-3 bg-purple-50/60 dark:bg-slate-700/60 rounded-2xl border border-purple-200 dark:border-slate-600 text-[11px] text-slate-700 dark:text-slate-200 max-h-36 overflow-y-auto whitespace-pre-wrap leading-relaxed font-sans">
+              Click a sample above or ask a question to test live SQLite + AI parent responses.
+            </div>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Broadcast Composer (2 Columns) -->
           <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">

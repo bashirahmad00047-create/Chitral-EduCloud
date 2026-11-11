@@ -4,6 +4,7 @@ from routes.attendance_routes import attendance_bp
 from routes.finance_routes import finance_bp
 from routes.exam_routes import exam_bp
 from routes.system_routes import system_bp
+from routes.whatsapp_routes import whatsapp_bp
 
 def register_blueprints(app):
     """Register all modular application blueprints."""
@@ -13,3 +14,4 @@ def register_blueprints(app):
     app.register_blueprint(finance_bp)
     app.register_blueprint(exam_bp)
     app.register_blueprint(system_bp)
+    app.register_blueprint(whatsapp_bp)
