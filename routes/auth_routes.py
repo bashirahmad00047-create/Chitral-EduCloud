@@ -53,18 +53,48 @@ def login():
 def get_session():
     user = get_current_user_session()
     if not user:
+        # If user explicitly clicked Logout, respect it
+        if session.get('explicit_logout'):
+            return jsonify({'authenticated': False, 'user': None})
+
+        # Default strictly to Admin on initial load for seamless demo & ERP administration
+        conn = database.get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE role = 'admin' AND school_id = 'chitral-model' LIMIT 1")
+        default_user = cursor.fetchone()
+        if not default_user:
+            cursor.execute("SELECT * FROM users WHERE role = 'admin' LIMIT 1")
+            default_user = cursor.fetchone()
+        conn.close()
+
+        if default_user:
+            u_dict = dict(default_user)
+            login_user_session(u_dict)
+            return jsonify({
+                'authenticated': True,
+                'user': {
+                    'id': u_dict['id'],
+                    'username': u_dict['username'],
+                    'role': 'admin',
+                    'full_name': u_dict['full_name'],
+                    'school_id': u_dict['school_id'],
+                    'linked_student_id': None
+                }
+            })
         return jsonify({'authenticated': False, 'user': None})
     return jsonify({'authenticated': True, 'user': user})
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
     logout_user_session()
+    session['explicit_logout'] = True
     return jsonify({'success': True, 'message': 'Logged out successfully.'})
 
+@auth_bp.route('/switch-role', methods=['POST'])
 @auth_bp.route('/demo-login', methods=['POST'])
-def demo_login():
+def switch_role():
     data = request.get_json() or {}
-    role = data.get('role', 'admin')
+    role = data.get('role', 'admin').lower()
     school_id = data.get('school_id', 'chitral-model')
 
     conn = database.get_db()
@@ -79,14 +109,14 @@ def demo_login():
     conn.close()
 
     if not user_row:
-        return jsonify({'error': 'User not found for demo role'}), 404
+        return jsonify({'error': 'User not found for role'}), 404
 
     user = dict(user_row)
     login_user_session(user)
 
     return jsonify({
         'success': True,
-        'message': f"Demo login as {role.upper()}: {user['full_name']}",
+        'message': f"Switched role to {role.upper()}: {user['full_name']}",
         'user': {
             'id': user['id'],
             'username': user['username'],

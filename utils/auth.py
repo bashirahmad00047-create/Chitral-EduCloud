@@ -3,6 +3,7 @@ from flask import session, jsonify, request
 from werkzeug.security import check_password_hash, generate_password_hash
 
 def login_user_session(user):
+    session.pop('explicit_logout', None)
     session['user_id'] = user['id']
     session['username'] = user['username']
     session['role'] = user['role']

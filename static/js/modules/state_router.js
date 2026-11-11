@@ -27,11 +27,16 @@ async function checkAuthSession() {
     const data = await res.json();
     if (data.authenticated && data.user) {
       state.currentUser = data.user;
-      state.currentRole = data.user.role;
+      state.currentRole = data.user.role || 'admin';
+      setRole(data.user.role || 'admin', false);
       updateHeaderUserUI(data.user);
+    } else {
+      // Default strictly to Admin on initial launch
+      setRole('admin', true);
     }
   } catch (err) {
     console.warn("Auth check:", err);
+    setRole('admin', false);
   }
 }
 
@@ -234,8 +239,8 @@ function updateSchoolHeaderUI() {
 }
 
 // ==================== ROLE SWITCHER ====================
-function setRole(role) {
-  state.currentRole = role;
+async function setRole(role, syncBackend = true) {
+  state.currentRole = role || 'admin';
 
   const roles = ['admin', 'teacher', 'parent'];
   roles.forEach(r => {
@@ -254,23 +259,52 @@ function setRole(role) {
   const roleText = document.getElementById('userRoleText');
 
   if (role === 'admin') {
-    avatar.innerText = "AD";
-    name.innerText = state.school.principal_name || "Admin Rehmat";
-    roleText.innerText = "Principal Desk";
+    if (avatar) avatar.innerText = "AD";
+    if (name) name.innerText = "Admin Rehmat";
+    if (roleText) roleText.innerText = "Principal Desk";
+  } else if (role === 'teacher') {
+    if (avatar) avatar.innerText = "FA";
+    if (name) name.innerText = "Sir Farooq Azam";
+    if (roleText) roleText.innerText = "Faculty Specialist";
+  } else if (role === 'parent') {
+    if (avatar) avatar.innerText = "MW";
+    if (name) name.innerText = "Mir Wazir Khan";
+    if (roleText) roleText.innerText = "Guardian Portal";
+  }
+
+  // 1. Immediately apply client-side RBAC & unhide all 13 sidebar links for admin
+  if (typeof applyRolePermissions === 'function') {
+    applyRolePermissions(role);
+  }
+
+  // 2. Sync server-side session via /api/auth/switch-role
+  if (syncBackend) {
+    try {
+      const res = await fetch('/api/auth/switch-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: role, school_id: state.currentSchoolId })
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.user) {
+        state.currentUser = data.user;
+        updateHeaderUserUI(data.user);
+      }
+    } catch (err) {
+      console.warn("Switch role error:", err);
+    }
+  }
+
+  // 3. Navigate to active landing screen
+  if (role === 'admin') {
     navigateTo('screen-dashboard');
   } else if (role === 'teacher') {
-    avatar.innerText = "FA";
-    name.innerText = "Sir Farooq Azam";
-    roleText.innerText = "Faculty Specialist";
     navigateTo('screen-teacher');
   } else if (role === 'parent') {
-    avatar.innerText = "MW";
-    name.innerText = "Mir Wazir Khan";
-    roleText.innerText = "Guardian Portal";
     navigateTo('screen-parent');
   }
 
-  showToast(`Active role: ${role.toUpperCase()}`);
+  showToast(`Switched to: ${role.toUpperCase()} Portal`);
 }
 
 function updateHeaderUserUI(user) {
@@ -278,29 +312,28 @@ function updateHeaderUserUI(user) {
   const name = document.getElementById('userNameText');
   const roleText = document.getElementById('userRoleText');
   if (user && name) {
-    name.innerText = user.full_name;
-    if (roleText) roleText.innerText = user.role === 'admin' ? "Principal Desk" : (user.role === 'teacher' ? "Faculty Member" : "Parent Portal");
-    if (avatar) avatar.innerText = user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+    if (user.role === 'admin') {
+      name.innerText = user.full_name || "Admin Rehmat";
+      if (roleText) roleText.innerText = "Principal Desk";
+      if (avatar) avatar.innerText = "AD";
+    } else if (user.role === 'teacher') {
+      name.innerText = user.full_name || "Sir Farooq Azam";
+      if (roleText) roleText.innerText = "Faculty Specialist";
+      if (avatar) avatar.innerText = "FA";
+    } else if (user.role === 'parent') {
+      name.innerText = user.full_name || "Mir Wazir Khan";
+      if (roleText) roleText.innerText = "Guardian Portal";
+      if (avatar) avatar.innerText = "MW";
+    }
   }
 }
 
 async function loginAsRole(role) {
-  try {
-    const res = await fetch('/api/auth/demo-login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role: role, school_id: state.currentSchoolId })
-    });
-    const data = await res.json();
-    if (res.ok && data.success) {
-      state.currentUser = data.user;
-      updateHeaderUserUI(data.user);
-    }
-  } catch (err) {
-    console.warn("Demo login error:", err);
-  }
-  setRole(role);
+  await setRole(role, true);
 }
+
+window.switchRole = setRole;
+window.setRole = setRole;
 
 async function handleCredentialsLogin(e) {
   e.preventDefault();
