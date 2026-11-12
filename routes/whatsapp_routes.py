@@ -9,6 +9,20 @@ from config import Config
 
 whatsapp_bp = Blueprint('whatsapp', __name__)
 
+def normalize_pakistani_phone(phone_str):
+    if not phone_str:
+        return '923459821455'
+    clean = ''.join(c for c in str(phone_str) if c.isdigit())
+    if clean.startswith('0092'):
+        clean = clean[2:]
+    if clean.startswith('9203'):
+        clean = '92' + clean[3:]
+    elif clean.startswith('03'):
+        clean = '92' + clean[1:]
+    elif clean.startswith('3') and len(clean) == 10:
+        clean = '92' + clean
+    return clean
+
 def call_wa_engine(endpoint, method='GET', payload=None, timeout=2.5):
     url = f"{Config.WHATSAPP_ENGINE_URL}{endpoint}"
     try:
@@ -58,7 +72,8 @@ def connect_wa():
 def request_wa_pair_code():
     data = request.get_json() or {}
     school_id = session.get('school_id') or data.get('school_id', 'chitral-model')
-    phone = data.get('phone') or data.get('phoneNumber') or '03209350858'
+    raw_phone = data.get('phone') or data.get('phoneNumber') or '03209350858'
+    phone = normalize_pakistani_phone(raw_phone)
 
     # Allow up to 8s timeout for genuine WhatsApp server round-trip handshake
     remote_data = call_wa_engine('/wa/pair-code', method='POST', payload={

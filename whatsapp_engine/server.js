@@ -48,6 +48,9 @@ const sessionState = {};
 function normalizePakistaniPhone(input) {
   if (!input) return '923459821455';
   let clean = String(input).replace(/[^0-9]/g, '');
+  if (clean.startsWith('0092')) {
+    clean = clean.slice(2);
+  }
   if (clean.startsWith('9203')) {
     clean = '92' + clean.slice(3);
   } else if (clean.startsWith('03')) {
@@ -211,8 +214,8 @@ async function requestPairingCode(schoolId, rawPhoneNumber) {
   }
 
   // Await websocket noise handshake to establish before requesting code
-  for (let i = 0; i < 20; i++) {
-    if (sock.ws && sock.ws.isOpen) break;
+  for (let i = 0; i < 24; i++) {
+    if ((sock.ws && (sock.ws.isOpen || sock.ws.readyState === 1)) || stateObj.status === 'QR_READY') break;
     await new Promise(r => setTimeout(r, 250));
   }
 
