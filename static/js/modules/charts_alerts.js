@@ -407,110 +407,137 @@ async function refreshWhatsAppStatus() {
   }
 }
 
-let waModalRefreshTimer = null;
+let waModalPollTimer = null;
+let lastRenderedQrDataUrl = null;
 
 async function triggerWhatsAppConnect() {
   const schoolId = state.currentSchoolId || 'chitral-model';
-  showToast("Requesting pairing token from Baileys microservice...");
+  lastRenderedQrDataUrl = null;
 
-  // Populate default school phone into pair input
+  const modal = document.getElementById('modalWhatsAppQr');
+  if (modal) modal.classList.remove('hidden');
+
+  // Pre-fill phone number
   const phoneInput = document.getElementById('waPairPhoneInput');
   if (phoneInput && !phoneInput.value) {
-    phoneInput.value = state.school.phone || '03459821455';
+    phoneInput.value = state.school.phone || '03209350858';
   }
 
-  await refreshWhatsAppModalQR(schoolId);
+  const schoolLabel = document.getElementById('waModalSchoolId');
+  if (schoolLabel) schoolLabel.innerText = schoolId;
 
-  // Auto-refresh QR code every 3 seconds while modal is open
-  if (waModalRefreshTimer) clearInterval(waModalRefreshTimer);
-  waModalRefreshTimer = setInterval(() => {
-    const modal = document.getElementById('modalWhatsAppQr');
-    if (modal && !modal.classList.contains('hidden')) {
-      refreshWhatsAppModalQR(state.currentSchoolId || 'chitral-model', false);
-    } else {
-      clearInterval(waModalRefreshTimer);
-    }
-  }, 3000);
-}
-
-async function refreshWhatsAppModalQR(schoolId, showNotice = true) {
+  // 1. Initiate Baileys socket ONCE (does not recreate if already alive)
   try {
-    const res = await fetch('/api/wa/connect', {
+    await fetch('/api/wa/connect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ school_id: schoolId })
     });
+  } catch (e) {
+    console.warn("Connect init note:", e);
+  }
+
+  // 2. Poll read-only status immediately, then every 4 seconds
+  await pollWhatsAppStatus(schoolId);
+
+  if (waModalPollTimer) clearInterval(waModalPollTimer);
+  waModalPollTimer = setInterval(() => {
+    const activeModal = document.getElementById('modalWhatsAppQr');
+    if (activeModal && !activeModal.classList.contains('hidden')) {
+      pollWhatsAppStatus(state.currentSchoolId || 'chitral-model');
+    } else {
+      clearInterval(waModalPollTimer);
+      waModalPollTimer = null;
+    }
+  }, 4000);
+}
+
+async function pollWhatsAppStatus(schoolId) {
+  try {
+    const res = await fetch(`/api/wa/status?school_id=${encodeURIComponent(schoolId)}`);
+    if (!res.ok) return;
     const data = await res.json();
-    if (res.ok && data.success) {
-      const modal = document.getElementById('modalWhatsAppQr');
-      const qrImg = document.getElementById('waModalQrImg');
-      const qrCanvas = document.getElementById('waModalQrCanvas');
-      const schoolLabel = document.getElementById('waModalSchoolId');
 
-      if (schoolLabel) schoolLabel.innerText = schoolId;
+    const qrImg = document.getElementById('waModalQrImg');
+    const qrLoader = document.getElementById('waModalQrLoader');
+    const qrSubtitle = document.getElementById('waModalQrSubtitle');
+    const connectedBox = document.getElementById('waModalConnectedBox');
+    const linkingOptions = document.getElementById('waModalLinkingOptions');
+    const connectedPhone = document.getElementById('waModalConnectedPhone');
+    const modalStateIndicator = document.getElementById('waModalStateIndicator');
 
-      // Authentic Cryptographic WhatsApp Web QR Code
-      const payload = data.qr_payload || `2@chitral_educloud_gateway,tenant=${schoolId},auth=baileys_socket`;
+    // Case A: Socket is connected live to WhatsApp!
+    if (data.status === 'CONNECTED') {
+      if (connectedBox) connectedBox.classList.remove('hidden');
+      if (linkingOptions) linkingOptions.classList.add('hidden');
+      if (connectedPhone) connectedPhone.innerText = data.phone ? `+${data.phone}` : 'Connected';
 
-      if (qrCanvas && window.QRCode) {
-        qrCanvas.innerHTML = '';
-        qrCanvas.classList.remove('hidden');
-        if (qrImg) qrImg.classList.add('hidden');
-        try {
-          new QRCode(qrCanvas, {
-            text: payload,
-            width: 176,
-            height: 176,
-            colorDark: "#064e3b",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
-          });
-        } catch (qrErr) {
-          if (qrImg && data.qr_code) {
-            qrCanvas.classList.add('hidden');
-            qrImg.classList.remove('hidden');
-            qrImg.src = data.qr_code;
-          }
-        }
-      } else if (qrImg && data.qr_code) {
-        if (qrCanvas) qrCanvas.classList.add('hidden');
-        qrImg.classList.remove('hidden');
-        qrImg.src = data.qr_code;
-      }
-
-      if (modal) modal.classList.remove('hidden');
-
-      const modalStateIndicator = document.getElementById('waModalStateIndicator');
       if (modalStateIndicator) {
-        if (data.status === 'CONNECTED') {
-          modalStateIndicator.className = "px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold border border-emerald-300 flex items-center gap-1.5";
-          modalStateIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> LIVE BAILEYS CONNECTED`;
-        } else {
-          modalStateIndicator.className = "px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold border border-emerald-300 flex items-center gap-1.5";
-          modalStateIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> LIVE BAILEYS TOKEN ACTIVE`;
-        }
+        modalStateIndicator.className = "px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold border border-emerald-300 flex items-center gap-1.5";
+        modalStateIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> CONNECTED (+${data.phone || ''})`;
       }
 
-      if (showNotice) {
-        showToast("Authentic WhatsApp Web pairing token rendered!");
+      // Also update dashboard badge
+      const mainBadge = document.getElementById('waStatusBadge');
+      if (mainBadge) {
+        mainBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5";
+        mainBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> CONNECTED`;
+      }
+
+      if (waModalPollTimer) {
+        clearInterval(waModalPollTimer);
+        waModalPollTimer = null;
+      }
+      return;
+    }
+
+    // Case B: QR token ready from WhatsApp server
+    if (data.status === 'QR_READY' && data.qr_code) {
+      if (connectedBox) connectedBox.classList.add('hidden');
+      if (linkingOptions) linkingOptions.classList.remove('hidden');
+
+      // Only re-assign image src if token actually changed from WhatsApp
+      if (data.qr_code !== lastRenderedQrDataUrl) {
+        lastRenderedQrDataUrl = data.qr_code;
+        if (qrImg) {
+          qrImg.src = data.qr_code;
+          qrImg.classList.remove('hidden');
+        }
+        if (qrLoader) qrLoader.classList.add('hidden');
+      }
+
+      if (qrSubtitle) {
+        qrSubtitle.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live WhatsApp Server QR (Scannable for 60s)`;
+      }
+
+      if (modalStateIndicator) {
+        modalStateIndicator.className = "px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold border border-amber-300 flex items-center gap-1.5";
+        modalStateIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> QR READY FOR SCAN`;
+      }
+    } else {
+      // Case C: Socket is connecting to WhatsApp servers
+      if (qrLoader) qrLoader.classList.remove('hidden');
+      if (qrImg) qrImg.classList.add('hidden');
+      if (qrSubtitle) {
+        qrSubtitle.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> Connecting to WhatsApp Web Server...`;
       }
     }
   } catch (err) {
-    console.warn("QR fetch error:", err);
+    console.warn("Status poll error:", err);
   }
 }
 
 async function handleRequestWhatsAppPairCode() {
   const schoolId = state.currentSchoolId || 'chitral-model';
   const phoneInput = document.getElementById('waPairPhoneInput');
-  const phone = (phoneInput?.value || '').trim() || '03459821455';
+  const phone = (phoneInput?.value || '').trim() || '03209350858';
   const btn = document.getElementById('btnGetPairCode');
   const resultBox = document.getElementById('waPairCodeResultBox');
   const codeText = document.getElementById('waPairCodeText');
 
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating...`;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Requesting...`;
   }
 
   try {
@@ -526,12 +553,17 @@ async function handleRequestWhatsAppPairCode() {
     if (res.ok && data.success && data.pairing_code) {
       if (resultBox) resultBox.classList.remove('hidden');
       if (codeText) codeText.innerText = data.pairing_code;
-      showToast(`8-Digit Pairing Code: ${data.pairing_code}`);
+      showToast(`WhatsApp 8-Digit Pairing Code: ${data.pairing_code}`);
+
+      // Ensure status poll is actively checking for authentication completion
+      if (!waModalPollTimer) {
+        waModalPollTimer = setInterval(() => pollWhatsAppStatus(schoolId), 3000);
+      }
     } else {
-      showToast(data.error || "Failed to generate pairing code");
+      showToast(data.error || "Failed to generate pairing code. Please wait a moment and retry.");
     }
   } catch (err) {
-    showToast("Pairing code network error");
+    showToast("Network error requesting pairing code from WhatsApp.");
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -541,9 +573,9 @@ async function handleRequestWhatsAppPairCode() {
 }
 
 function closeWhatsAppQrModal() {
-  if (waModalRefreshTimer) {
-    clearInterval(waModalRefreshTimer);
-    waModalRefreshTimer = null;
+  if (waModalPollTimer) {
+    clearInterval(waModalPollTimer);
+    waModalPollTimer = null;
   }
   const modal = document.getElementById('modalWhatsAppQr');
   if (modal) modal.classList.add('hidden');

@@ -170,7 +170,7 @@ def test_onboarding_and_feeheads():
     status_json = status_res.get_json()
     assert status_json.get('success') is True
     assert 'qr_payload' in status_json
-    assert 'chitral_educloud_gateway' in status_json['qr_payload']
+    assert status_json['qr_payload'].startswith('2@'), "Must be genuine Baileys WhatsApp Web QR ref token starting with 2@"
     
     qr_uri = status_json.get('qr_code', '')
     assert qr_uri.startswith('data:image/png;base64,'), "QR code must be a valid PNG Base64 Data URI!"

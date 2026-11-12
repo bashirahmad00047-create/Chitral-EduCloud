@@ -2,28 +2,27 @@
  * Chitral EduCloud ERP - Bashflow Multi-Tenant WhatsApp Gateway & Microservice
  * Port: 5055
  * Engine: @whiskeysockets/baileys with isolated multi-file auth per school tenant
- * Supports:
- * 1. Authentic WhatsApp Web Cryptographic Pairing QR Code (Mobile App -> Linked Devices -> Link a Device)
- * 2. Authentic 8-Digit Phone Pairing Code (POST /wa/pair-code) (Link with phone number instead)
+ * 
+ * Strict Protocol Rules:
+ * 1. ZERO fake/simulated QR codes or pairing codes.
+ * 2. Real cryptographic WhatsApp Web QR token from connection.update (update.qr).
+ * 3. Real 8-digit pairing code from sock.requestPairingCode(normalizedPhone).
+ * 4. Active socket instance kept alive in memory per tenant (activeSockets[schoolId]).
  */
 
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const url = require('url');
 const QRCode = require('qrcode');
 const pino = require('pino');
 
 // Import @whiskeysockets/baileys
-let makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion;
-try {
-  const baileys = require('@whiskeysockets/baileys');
-  makeWASocket = baileys.default || baileys;
-  useMultiFileAuthState = baileys.useMultiFileAuthState;
-  DisconnectReason = baileys.DisconnectReason;
-  fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
-} catch (err) {
-  console.warn("Baileys load warning:", err.message);
-}
+const baileys = require('@whiskeysockets/baileys');
+const makeWASocket = baileys.default || baileys.makeWASocket || baileys;
+const useMultiFileAuthState = baileys.useMultiFileAuthState;
+const DisconnectReason = baileys.DisconnectReason;
+const fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
 
 const PORT = process.env.WA_PORT || 5055;
 const FLASK_URL = process.env.FLASK_BACKEND_URL || 'http://127.0.0.1:5050';
@@ -33,209 +32,229 @@ if (!fs.existsSync(SESSIONS_DIR)) {
   fs.mkdirSync(SESSIONS_DIR, { recursive: true });
 }
 
-// In-Memory Multi-Tenant Session Registry
-const sessions = {};
+// In-Memory Multi-Tenant Registry
+const activeSockets = {};
+const sessionState = {};
 
-// Helper: Normalize Pakistani WhatsApp numbers
-function formatToJid(phone) {
-  if (!phone) return '923000000000@s.whatsapp.net';
-  let clean = phone.replace(/[^0-9]/g, '');
-  if (clean.startsWith('0')) {
+/**
+ * Strict Pakistani Phone Number Normalizer
+ * Handles:
+ * - 03209350858   -> 923209350858
+ * - +92 320 9350858 -> 923209350858
+ * - 9203209350858 -> 923209350858
+ * - 3209350858    -> 923209350858
+ * - 923209350858  -> 923209350858
+ */
+function normalizePakistaniPhone(input) {
+  if (!input) return '923459821455';
+  let clean = String(input).replace(/[^0-9]/g, '');
+  if (clean.startsWith('9203')) {
+    clean = '92' + clean.slice(3);
+  } else if (clean.startsWith('03')) {
     clean = '92' + clean.slice(1);
-  } else if (!clean.startsWith('92')) {
-    clean = '92' + clean;
-  }
-  return `${clean}@s.whatsapp.net`;
-}
-
-function cleanPhoneNumber(phone) {
-  if (!phone) return '923459821455';
-  let clean = String(phone).replace(/[^0-9]/g, '');
-  if (clean.startsWith('0')) {
-    clean = '92' + clean.slice(1);
-  } else if (!clean.startsWith('92')) {
+  } else if (clean.startsWith('3') && clean.length === 10) {
     clean = '92' + clean;
   }
   return clean;
 }
 
-// Multi-Tenant Baileys Session Manager
-async function getOrCreateSession(schoolId) {
-  if (!sessions[schoolId]) {
-    const sessionDir = path.join(SESSIONS_DIR, `school_${schoolId}`);
-    if (!fs.existsSync(sessionDir)) {
-      fs.mkdirSync(sessionDir, { recursive: true });
-    }
-
-    sessions[schoolId] = {
-      school_id: schoolId,
-      status: 'DISCONNECTED', // 'CONNECTED' | 'QR_READY' | 'DISCONNECTED'
-      phone: schoolId === 'chitral-model' ? '+92 345 9821455' : '+92 346 8819234',
-      qr_code: null,
-      qr_payload: null,
-      pairing_code: null,
-      session_path: sessionDir,
-      created_at: new Date().toISOString(),
-      sent_count: 0,
-      sock: null
-    };
-
-    // Auto-start real Baileys socket
-    startBaileysSocket(schoolId).catch(err => {
-      console.warn(`[Baileys][${schoolId}] Socket startup note:`, err.message);
-    });
-  }
-  return sessions[schoolId];
+function formatToJid(phone) {
+  const norm = normalizePakistaniPhone(phone);
+  return `${norm}@s.whatsapp.net`;
 }
 
-async function startBaileysSocket(schoolId) {
+function getSessionState(schoolId) {
+  if (!sessionState[schoolId]) {
+    sessionState[schoolId] = {
+      schoolId: schoolId,
+      status: 'DISCONNECTED', // 'CONNECTING' | 'QR_READY' | 'CONNECTED' | 'DISCONNECTED'
+      phone: null,
+      qrPayload: null, // raw cryptographic string from WhatsApp
+      qrDataUrl: null, // Base64 data:image/png;base64,...
+      pairingCode: null, // Real 8-character pairing code e.g. LFX5-P4CZ
+      lastError: null,
+      sentCount: 0,
+      updatedAt: new Date().toISOString()
+    };
+  }
+  return sessionState[schoolId];
+}
+
+async function startBaileysSocket(schoolId, forceRestart = false) {
+  const stateObj = getSessionState(schoolId);
+
+  // If socket already active and healthy, do NOT recreate
+  if (!forceRestart && activeSockets[schoolId]) {
+    if (stateObj.status === 'CONNECTED' || stateObj.status === 'QR_READY' || stateObj.status === 'CONNECTING') {
+      return stateObj;
+    }
+  }
+
+  // If force restarting, close previous socket cleanly
+  if (activeSockets[schoolId]) {
+    try {
+      activeSockets[schoolId].end();
+    } catch (e) {}
+    delete activeSockets[schoolId];
+  }
+
   const sessionDir = path.join(SESSIONS_DIR, `school_${schoolId}`);
   if (!fs.existsSync(sessionDir)) {
     fs.mkdirSync(sessionDir, { recursive: true });
   }
 
-  const session = sessions[schoolId] || {
-    school_id: schoolId,
-    session_path: sessionDir,
-    status: 'DISCONNECTED',
-    phone: '+92 345 9821455',
-    sent_count: 0
-  };
-
-  if (!makeWASocket || !useMultiFileAuthState) {
-    console.warn(`[Baileys][${schoolId}] Running in standalone simulation mode`);
-    session.status = 'QR_READY';
-    session.qr_payload = `2@chitral_educloud_gateway,tenant=${schoolId},auth=baileys_socket`;
-    session.qr_code = await QRCode.toDataURL(session.qr_payload, { errorCorrectionLevel: 'M', margin: 2 });
-    sessions[schoolId] = session;
-    return session;
-  }
+  stateObj.status = 'CONNECTING';
+  stateObj.qrPayload = null;
+  stateObj.qrDataUrl = null;
+  stateObj.pairingCode = null;
+  stateObj.lastError = null;
+  stateObj.updatedAt = new Date().toISOString();
 
   try {
     const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
-    
-    let version;
+
+    let version = [2, 3000, 1015901307];
     try {
       const v = await fetchLatestBaileysVersion();
-      version = v.version;
-    } catch (e) {
-      version = [2, 3000, 1015901307];
-    }
+      if (v && v.version) version = v.version;
+    } catch (e) {}
+
+    // Use standard Ubuntu Chrome browser header recognized by WhatsApp Web
+    const browser = baileys.Browsers ? baileys.Browsers.ubuntu('Chrome') : ['Ubuntu', 'Chrome', '20.0.04'];
 
     const sock = makeWASocket({
       version,
       auth: state,
       logger: pino({ level: 'silent' }),
       printQRInTerminal: false,
-      browser: ['Chitral EduCloud ERP', 'Chrome', '1.0.0'],
+      browser: browser,
       connectTimeoutMs: 60000,
       defaultQueryTimeoutMs: 60000,
       syncFullHistory: false
     });
 
-    session.sock = sock;
-    session.session_path = sessionDir;
+    activeSockets[schoolId] = sock;
 
     sock.ev.on('creds.update', saveCreds);
 
     sock.ev.on('connection.update', async (update) => {
       const { connection, lastDisconnect, qr } = update;
-      
-      // Real cryptographic WhatsApp Web QR code token emitted by Baileys
+
+      // Authentic Cryptographic WhatsApp Web QR Code Token directly from WhatsApp
       if (qr) {
-        session.qr_payload = qr;
+        stateObj.qrPayload = qr;
         try {
-          session.qr_code = await QRCode.toDataURL(qr, { errorCorrectionLevel: 'M', margin: 2 });
+          stateObj.qrDataUrl = await QRCode.toDataURL(qr, { errorCorrectionLevel: 'M', margin: 2 });
+          stateObj.status = 'QR_READY';
+          stateObj.updatedAt = new Date().toISOString();
+          console.log(`[Baileys][${schoolId}] Authentic WhatsApp server QR received (token length: ${qr.length})`);
         } catch (qrErr) {
           console.error("QR Code rendering error:", qrErr);
         }
-        session.status = 'QR_READY';
-        console.log(`[Baileys][${schoolId}] Authentic WhatsApp Web pairing QR ready for scanning!`);
       }
 
       if (connection === 'close') {
+        delete activeSockets[schoolId];
         const statusCode = (lastDisconnect?.error)?.output?.statusCode;
-        const shouldReconnect = statusCode !== (DisconnectReason ? DisconnectReason.loggedOut : 401);
-        session.status = 'DISCONNECTED';
-        console.log(`[Baileys][${schoolId}] Connection closed. StatusCode: ${statusCode}. Reconnect: ${shouldReconnect}`);
-        if (shouldReconnect) {
-          setTimeout(() => startBaileysSocket(schoolId), 5000);
+        const loggedOut = statusCode === (DisconnectReason ? DisconnectReason.loggedOut : 401);
+        const wasConnected = !!stateObj.phone;
+        stateObj.status = 'DISCONNECTED';
+        stateObj.qrPayload = null;
+        stateObj.qrDataUrl = null;
+        stateObj.pairingCode = null;
+        stateObj.updatedAt = new Date().toISOString();
+        console.log(`[Baileys][${schoolId}] Connection closed. StatusCode: ${statusCode}. LoggedOut: ${loggedOut}`);
+
+        if (loggedOut && wasConnected) {
+          // Clear session auth on genuine logout so fresh pairing can take place
+          stateObj.phone = null;
+          try {
+            fs.rmSync(sessionDir, { recursive: true, force: true });
+          } catch (e) {}
         }
       } else if (connection === 'open') {
-        session.status = 'CONNECTED';
-        session.qr_code = null;
-        session.pairing_code = null;
+        stateObj.status = 'CONNECTED';
+        stateObj.qrPayload = null;
+        stateObj.qrDataUrl = null;
+        stateObj.pairingCode = null;
+        stateObj.lastError = null;
         if (sock.user && sock.user.id) {
-          session.phone = sock.user.id.split(':')[0];
+          stateObj.phone = sock.user.id.split(':')[0];
         }
-        console.log(`[Baileys][${schoolId}] WhatsApp session CONNECTED! Verified Phone: ${session.phone}`);
+        stateObj.updatedAt = new Date().toISOString();
+        console.log(`[Baileys][${schoolId}] WhatsApp WebSocket CONNECTED! Linked Phone: ${stateObj.phone}`);
       }
     });
 
-    sessions[schoolId] = session;
-    return session;
+    return stateObj;
   } catch (err) {
     console.error(`[Baileys][${schoolId}] Error creating socket:`, err.message);
-    session.status = 'QR_READY';
-    session.qr_payload = `2@chitral_educloud_gateway,tenant=${schoolId},auth=baileys_socket`;
-    session.qr_code = await QRCode.toDataURL(session.qr_payload, { errorCorrectionLevel: 'M', margin: 2 });
-    sessions[schoolId] = session;
-    return session;
+    stateObj.status = 'DISCONNECTED';
+    stateObj.lastError = err.message;
+    return stateObj;
   }
 }
 
-// Request 8-Digit Phone Pairing Code (alternative to scanning QR code)
-async function requestPairingCode(schoolId, phoneNumber) {
-  let session = sessions[schoolId];
-  if (!session || !session.sock) {
-    session = await getOrCreateSession(schoolId);
+// Request REAL 8-Digit Phone Pairing Code from WhatsApp server
+async function requestPairingCode(schoolId, rawPhoneNumber) {
+  const normalizedPhone = normalizePakistaniPhone(rawPhoneNumber);
+  let sock = activeSockets[schoolId];
+  let stateObj = getSessionState(schoolId);
+
+  if (!sock || stateObj.status === 'DISCONNECTED') {
+    await startBaileysSocket(schoolId, false);
+    sock = activeSockets[schoolId];
   }
 
-  const cleanPhone = cleanPhoneNumber(phoneNumber);
+  if (!sock) {
+    return { success: false, error: 'Could not initialize WhatsApp socket. Please retry.' };
+  }
+
+  // Await websocket noise handshake to establish before requesting code
+  for (let i = 0; i < 20; i++) {
+    if (sock.ws && sock.ws.isOpen) break;
+    await new Promise(r => setTimeout(r, 250));
+  }
 
   try {
-    if (session.sock && session.sock.requestPairingCode && !session.sock.authState?.creds?.registered) {
-      const code = await session.sock.requestPairingCode(cleanPhone);
-      const formatted = code && code.length === 8 ? `${code.slice(0, 4)}-${code.slice(4)}` : (code || '4481-9920');
-      session.pairing_code = formatted;
-      session.phone = cleanPhone;
-      console.log(`[Baileys][${schoolId}] 8-Digit Pairing Code generated for ${cleanPhone}: ${formatted}`);
-      return { success: true, pairing_code: formatted, phone: cleanPhone };
+    if (sock.requestPairingCode && !sock.authState?.creds?.registered) {
+      console.log(`[Baileys][${schoolId}] Requesting genuine pairing code for normalized phone: ${normalizedPhone}...`);
+      const code = await sock.requestPairingCode(normalizedPhone);
+      const formatted = code && code.length === 8 ? `${code.slice(0, 4)}-${code.slice(4)}` : code;
+      stateObj.pairingCode = formatted;
+      stateObj.phone = normalizedPhone;
+      stateObj.updatedAt = new Date().toISOString();
+      console.log(`[Baileys][${schoolId}] Authentic 8-Digit Pairing Code received: ${formatted}`);
+      return { success: true, pairing_code: formatted, phone: normalizedPhone };
+    } else {
+      return { success: false, error: 'WhatsApp session is already registered or connected.' };
     }
   } catch (err) {
-    console.warn(`[Baileys][${schoolId}] requestPairingCode socket note:`, err.message);
+    console.error(`[Baileys][${schoolId}] requestPairingCode error:`, err.message);
+    stateObj.lastError = err.message;
+    return { success: false, error: err.message || 'WhatsApp rejected pairing code request.' };
   }
-
-  // Guaranteed fallback 8-digit code formatted as XXXX-XXXX
-  const hash = Math.abs(cleanPhone.split('').reduce((acc, c) => acc * 31 + c.charCodeAt(0), 11));
-  const raw8 = String(hash % 90000000 + 10000000);
-  const fallbackCode = `${raw8.slice(0, 4)}-${raw8.slice(4)}`;
-  session.pairing_code = fallbackCode;
-  session.phone = cleanPhone;
-  console.log(`[Baileys][${schoolId}] 8-Digit Pairing Code ready for ${cleanPhone}: ${fallbackCode}`);
-  return { success: true, pairing_code: fallbackCode, phone: cleanPhone };
 }
 
-// Initialize default school sessions
-['chitral-model', 'pamir-valley', 'hindukush'].forEach(id => {
-  getOrCreateSession(id);
-});
+// Pre-initialize default campus
+startBaileysSocket('chitral-model', false).catch(() => {});
 
-// Create Native HTTP Server
+// HTTP API Server
 const server = http.createServer(async (req, res) => {
+  const parsedUrl = url.parse(req.url, true);
+  const pathname = parsedUrl.pathname;
+  const query = parsedUrl.query;
+
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
-    res.writeHead(204);
+    res.writeHead(200);
     res.end();
     return;
   }
-
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  const pathname = url.pathname;
 
   // 1. Health Endpoint
   if (req.method === 'GET' && pathname === '/health') {
@@ -244,64 +263,68 @@ const server = http.createServer(async (req, res) => {
       status: 'healthy',
       service: 'Chitral EduCloud Bashflow WhatsApp Engine',
       port: PORT,
-      active_tenants: Object.keys(sessions).length,
+      active_tenants: Object.keys(activeSockets).length,
       timestamp: new Date().toISOString()
     }));
     return;
   }
 
-  // 2. GET /wa/status/:school_id
-  if (req.method === 'GET' && pathname.startsWith('/wa/status/')) {
-    const schoolId = pathname.replace('/wa/status/', '').trim() || 'chitral-model';
-    const session = await getOrCreateSession(schoolId);
+  // 2. GET /wa/status (Read-only status inspection, NEVER restarts or destroys socket)
+  if (req.method === 'GET' && (pathname === '/wa/status' || pathname.startsWith('/wa/status/'))) {
+    const pathSchoolId = pathname.startsWith('/wa/status/') ? pathname.replace('/wa/status/', '').trim() : '';
+    const schoolId = pathSchoolId || query.school_id || 'chitral-model';
+    const stateObj = getSessionState(schoolId);
 
-    // If QR code is not generated yet, generate a high-res authentic QR code
-    if (!session.qr_code) {
-      session.qr_payload = session.qr_payload || `2@chitral_educloud_gateway,tenant=${schoolId},auth=baileys_socket`;
-      session.qr_code = await QRCode.toDataURL(session.qr_payload, { errorCorrectionLevel: 'M', margin: 2 });
+    // If socket is not running yet, initiate in background without blocking
+    if (!activeSockets[schoolId] || stateObj.status === 'DISCONNECTED') {
+      startBaileysSocket(schoolId, false).catch(() => {});
     }
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       success: true,
-      school_id: session.school_id,
-      status: session.status,
-      phone: session.phone,
-      qr_code: session.qr_code,
-      qr_payload: session.qr_payload,
-      pairing_code: session.pairing_code,
-      session_path: session.session_path,
-      sent_count: session.sent_count,
-      timestamp: new Date().toISOString()
-    }));
-    return;
-  }
-
-  // 3. POST /wa/connect/:school_id (Regenerate QR / Reconnect)
-  if (req.method === 'POST' && pathname.startsWith('/wa/connect/')) {
-    const schoolId = pathname.replace('/wa/connect/', '').trim() || 'chitral-model';
-    const session = await startBaileysSocket(schoolId);
-
-    if (!session.qr_code) {
-      session.qr_payload = session.qr_payload || `2@chitral_educloud_gateway,tenant=${schoolId},time=${Date.now()},auth=baileys_socket`;
-      session.qr_code = await QRCode.toDataURL(session.qr_payload, { errorCorrectionLevel: 'M', margin: 2 });
-    }
-    session.status = session.status === 'CONNECTED' ? 'CONNECTED' : 'QR_READY';
-
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      success: true,
-      message: `WhatsApp pairing QR generated for ${schoolId}`,
       school_id: schoolId,
-      status: session.status,
-      qr_code: session.qr_code,
-      qr_payload: session.qr_payload,
-      pairing_code: session.pairing_code
+      status: stateObj.status,
+      phone: stateObj.phone,
+      qr_code: stateObj.qrDataUrl,
+      qr_payload: stateObj.qrPayload,
+      pairing_code: stateObj.pairingCode,
+      last_error: stateObj.lastError,
+      sent_count: stateObj.sentCount,
+      timestamp: stateObj.updatedAt
     }));
     return;
   }
 
-  // Parse JSON Body for POST endpoints
+  // 3. POST /wa/connect (Ensures socket is running, returns current state)
+  if (req.method === 'POST' && (pathname === '/wa/connect' || pathname.startsWith('/wa/connect/'))) {
+    const pathSchoolId = pathname.startsWith('/wa/connect/') ? pathname.replace('/wa/connect/', '').trim() : '';
+
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      let data = {};
+      if (body) {
+        try { data = JSON.parse(body); } catch (e) {}
+      }
+      const schoolId = pathSchoolId || data.school_id || query.school_id || 'chitral-model';
+      const stateObj = await startBaileysSocket(schoolId, false);
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        success: true,
+        school_id: schoolId,
+        status: stateObj.status,
+        qr_code: stateObj.qrDataUrl,
+        qr_payload: stateObj.qrPayload,
+        pairing_code: stateObj.pairingCode,
+        message: stateObj.status === 'CONNECTED' ? 'Already connected to WhatsApp' : 'Baileys socket active. Waiting for WhatsApp token.'
+      }));
+    });
+    return;
+  }
+
+  // Body parser for remaining POST requests
   let body = '';
   req.on('data', chunk => { body += chunk; });
   req.on('end', async () => {
@@ -310,20 +333,30 @@ const server = http.createServer(async (req, res) => {
       try { data = JSON.parse(body); } catch (e) {}
     }
 
-    // 4. POST /wa/pair-code (8-Digit Phone Pairing Code)
+    // 4. POST /wa/pair-code (8-Digit Real Baileys Phone Pairing Code)
     if (req.method === 'POST' && (pathname === '/wa/pair-code' || pathname.startsWith('/wa/pair-code'))) {
       const schoolId = data.school_id || 'chitral-model';
-      const phoneNumber = data.phone || data.phoneNumber || data.phone_number || '0345-9821455';
-      const result = await requestPairingCode(schoolId, phoneNumber);
+      const rawPhone = data.phone || data.phoneNumber || data.phone_number || '03209350858';
+      const result = await requestPairingCode(schoolId, rawPhone);
 
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        success: true,
-        school_id: schoolId,
-        phone: result.phone,
-        pairing_code: result.pairing_code,
-        message: 'Pairing code generated! Open WhatsApp -> Linked Devices -> Link with phone number instead and enter this code.'
-      }));
+      if (result.success) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          school_id: schoolId,
+          phone: result.phone,
+          pairing_code: result.pairing_code,
+          message: 'Real Baileys pairing code received! Open WhatsApp -> Linked Devices -> Link with phone number instead and enter this code.'
+        }));
+      } else {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: false,
+          school_id: schoolId,
+          phone: result.phone,
+          error: result.error || 'Failed to request authentic pairing code from WhatsApp servers'
+        }));
+      }
       return;
     }
 
@@ -332,16 +365,16 @@ const server = http.createServer(async (req, res) => {
       const schoolId = data.school_id || 'chitral-model';
       const phone = data.phone || '0345-9821455';
       const message = data.message || '';
-      const session = await getOrCreateSession(schoolId);
+      const sock = activeSockets[schoolId];
+      const stateObj = getSessionState(schoolId);
 
       const jid = formatToJid(phone);
-      session.sent_count = (session.sent_count || 0) + 1;
+      stateObj.sentCount = (stateObj.sentCount || 0) + 1;
 
-      // If active Baileys socket is connected, attempt live dispatch
-      if (session.sock && session.status === 'CONNECTED') {
+      if (sock && stateObj.status === 'CONNECTED') {
         try {
-          await session.sock.sendMessage(jid, { text: message });
-          console.log(`[Baileys][${schoolId}] Message sent live to ${jid}`);
+          await sock.sendMessage(jid, { text: message });
+          console.log(`[Baileys][${schoolId}] Message dispatched live to ${jid}`);
         } catch (sendErr) {
           console.warn(`[Baileys][${schoolId}] Live message note:`, sendErr.message);
         }
@@ -365,10 +398,10 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && pathname === '/wa/broadcast') {
       const schoolId = data.school_id || 'chitral-model';
       const recipients = data.recipients || [];
-      const session = await getOrCreateSession(schoolId);
+      const stateObj = getSessionState(schoolId);
 
       const count = recipients.length || 1;
-      session.sent_count = (session.sent_count || 0) + count;
+      stateObj.sentCount = (stateObj.sentCount || 0) + count;
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
@@ -388,7 +421,6 @@ const server = http.createServer(async (req, res) => {
       const phone = data.phone || '0345-9821455';
       const text = data.text || 'Assalam o alaikum, mere bache ki attendance aur fee bata dain?';
 
-      // Forward to Flask AI backend
       try {
         const postData = JSON.stringify({
           school_id: schoolId,

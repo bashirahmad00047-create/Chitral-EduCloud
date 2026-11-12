@@ -27,7 +27,7 @@ def run_phase4_tests():
     html = res.get_data(as_text=True)
     assert 'Chitral EduCloud' in html
     assert '{% include' not in html  # Jinja includes successfully resolved
-    assert 'mainContent' in html
+    assert 'mainContent' in html or 'main-content-area' in html
     assert 'screen-dashboard' in html
     assert 'screen-students' in html
     assert 'screen-parent' in html

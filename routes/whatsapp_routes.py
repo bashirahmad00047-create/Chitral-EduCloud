@@ -6,27 +6,6 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify, session
 import database
 from config import Config
-import io
-import base64
-import qrcode
-
-def generate_real_qr_data_uri(text):
-    """
-    Generate a 100% genuine, standard scannable QR code PNG image.
-    Returns standard Base64 Data URI: data:image/png;base64,...
-    """
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_M,
-        box_size=8,
-        border=3,
-    )
-    qr.add_data(text)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="#064e3b", back_color="#ffffff")
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode('utf-8')
 
 whatsapp_bp = Blueprint('whatsapp', __name__)
 
@@ -44,79 +23,58 @@ def call_wa_engine(endpoint, method='GET', payload=None, timeout=2.5):
 @whatsapp_bp.route('/api/wa/status', methods=['GET'])
 def get_wa_status():
     school_id = request.args.get('school_id', 'chitral-model')
-    raw_payload = f"2@chitral_educloud_gateway,tenant={school_id},auth=baileys_session"
-    real_qr = generate_real_qr_data_uri(raw_payload)
-
     remote_data = call_wa_engine(f"/wa/status/{school_id}")
     if remote_data and remote_data.get('success'):
-        if not remote_data.get('qr_code') or 'data:image/svg' in str(remote_data.get('qr_code')):
-            remote_data['qr_code'] = real_qr
-        remote_data['qr_payload'] = raw_payload
         return jsonify(remote_data)
     
-    # Fallback simulation state if microservice is booting
     return jsonify({
         'success': True,
         'school_id': school_id,
-        'status': 'CONNECTED' if school_id == 'chitral-model' else 'QR_READY',
-        'phone': '+92 345 9821455',
-        'qr_code': real_qr,
-        'qr_payload': raw_payload,
-        'source': 'fallback_gateway'
+        'status': 'CONNECTING',
+        'message': 'Connecting to Baileys WhatsApp Gateway...',
+        'qr_code': None,
+        'qr_payload': None,
+        'pairing_code': None
     })
 
 @whatsapp_bp.route('/api/wa/connect', methods=['POST'])
 def connect_wa():
     data = request.get_json() or {}
     school_id = data.get('school_id', 'chitral-model')
-    raw_payload = f"2@chitral_educloud_gateway,tenant={school_id},time={int(datetime.now().timestamp())},auth=baileys_socket"
-    real_qr = generate_real_qr_data_uri(raw_payload)
-
     remote_data = call_wa_engine(f"/wa/connect/{school_id}", method='POST', payload={'school_id': school_id})
     if remote_data and remote_data.get('success'):
-        if not remote_data.get('qr_code') or 'data:image/svg' in str(remote_data.get('qr_code')):
-            remote_data['qr_code'] = real_qr
-        remote_data['qr_payload'] = raw_payload
         return jsonify(remote_data)
     
     return jsonify({
         'success': True,
-        'message': f'WhatsApp session QR generated for {school_id}',
         'school_id': school_id,
-        'status': 'QR_READY',
-        'qr_code': real_qr,
-        'qr_payload': raw_payload
+        'status': 'CONNECTING',
+        'message': f'Baileys WhatsApp socket initializing for {school_id}...',
+        'qr_code': None,
+        'qr_payload': None
     })
 
 @whatsapp_bp.route('/api/wa/pair-code', methods=['POST'])
 def request_wa_pair_code():
     data = request.get_json() or {}
     school_id = session.get('school_id') or data.get('school_id', 'chitral-model')
-    phone = data.get('phone') or data.get('phoneNumber') or '0345-9821455'
+    phone = data.get('phone') or data.get('phoneNumber') or '03209350858'
 
+    # Allow up to 8s timeout for genuine WhatsApp server round-trip handshake
     remote_data = call_wa_engine('/wa/pair-code', method='POST', payload={
         'school_id': school_id,
         'phone': phone
-    })
+    }, timeout=8.0)
 
     if remote_data and remote_data.get('success'):
         return jsonify(remote_data)
 
-    clean_phone = "".join(filter(str.isdigit, str(phone)))
-    if not clean_phone.startswith('92'):
-        clean_phone = '92' + (clean_phone[1:] if clean_phone.startswith('0') else clean_phone)
-
-    import hashlib
-    h = int(hashlib.md5(clean_phone.encode()).hexdigest()[:6], 16)
-    code = f"{h % 9000 + 1000}-{h % 8999 + 1001}"
-
+    err_msg = (remote_data.get('error') if remote_data else None) or "WhatsApp engine socket is busy connecting. Please try again in 3 seconds."
     return jsonify({
-        'success': True,
+        'success': False,
         'school_id': school_id,
-        'phone': clean_phone,
-        'pairing_code': code,
-        'message': 'Pairing code generated! Open WhatsApp -> Linked Devices -> Link with phone number instead and enter this code.'
-    })
+        'error': err_msg
+    }), 400
 
 @whatsapp_bp.route('/api/wa/send-direct', methods=['POST'])
 def send_direct_wa():
