@@ -55,16 +55,22 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Stylesheets -->
-  <link rel="stylesheet" href="/static/css/style.css?v=8.0">
-  <link rel="stylesheet" href="/static/css/custom.css?v=8.0">
+  <link rel="stylesheet" href="/static/css/style.css?v=9.0">
+  <link rel="stylesheet" href="/static/css/custom.css?v=9.0">
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 h-screen w-screen overflow-hidden flex flex-col font-sans transition-colors duration-200">
 
-  <!-- TOP HEADER BAR, DESKTOP SIDEBAR & MOBILE BOTTOM NAV -->
-  {% include 'partials/navbar_sidebar.html' %}
+  <!-- TOP NAVBAR: Fixed 64px (h-16), sleek single-row flex bar -->
+  {% include 'partials/navbar_header.html' %}
 
-    <!-- MAIN SCROLLABLE CONTENT AREA -->
-    <main id="mainContent" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
+  <!-- MAIN BODY WRAPPER: Side-by-Side Flex Layout (calc(100vh - 64px)) -->
+  <div class="app-shell-body flex flex-row flex-1 h-[calc(100vh-64px)] w-full overflow-hidden relative">
+
+    <!-- LEFT SIDEBAR: 260px Fixed Width, 100% Height, Scrollable -->
+    {% include 'partials/sidebar.html' %}
+
+    <!-- RIGHT MAIN CONTENT AREA: Always sits directly to the right of the sidebar at top -->
+    <main id="main-content-area" class="app-shell-main flex-1 h-full overflow-y-auto p-4 sm:p-6 bg-slate-50 dark:bg-slate-900 pb-24 lg:pb-6">
       
       <!-- SCREEN 1 & 2: LOGIN & ADMIN DASHBOARD -->
       {% include 'partials/screen_auth_dashboard.html' %}
@@ -80,25 +86,25 @@
 
     </main>
 
-  </div> <!-- End of .flex-1 .flex .overflow-hidden .relative opened in navbar_sidebar.html -->
+  </div> <!-- End of .app-shell-body -->
 
   <!-- ==================== POPUP MODALS & TOAST NOTIFICATIONS ==================== -->
   {% include 'partials/modals.html' %}
 
   <!-- CORE DATA & INTERNATIONALIZATION SCRIPTS -->
-  <script src="/static/js/translations.js?v=8.0"></script>
-  <script src="/static/js/data.js?v=8.0"></script>
-  <script src="/static/js/api.js?v=8.0"></script>
-  <script src="/static/js/i18n.js?v=8.0"></script>
+  <script src="/static/js/translations.js?v=9.0"></script>
+  <script src="/static/js/data.js?v=9.0"></script>
+  <script src="/static/js/api.js?v=9.0"></script>
+  <script src="/static/js/i18n.js?v=9.0"></script>
 
   <!-- MODULAR CONTROLLER MODULES -->
-  <script src="/static/js/modules/state_router.js?v=8.0"></script>
-  <script src="/static/js/modules/students_id.js?v=8.0"></script>
-  <script src="/static/js/modules/academics_dmc.js?v=8.0"></script>
-  <script src="/static/js/modules/finance_payroll.js?v=8.0"></script>
-  <script src="/static/js/modules/charts_alerts.js?v=8.0"></script>
+  <script src="/static/js/modules/state_router.js?v=9.0"></script>
+  <script src="/static/js/modules/students_id.js?v=9.0"></script>
+  <script src="/static/js/modules/academics_dmc.js?v=9.0"></script>
+  <script src="/static/js/modules/finance_payroll.js?v=9.0"></script>
+  <script src="/static/js/modules/charts_alerts.js?v=9.0"></script>
 
   <!-- MASTER INITIALIZER -->
-  <script src="/static/js/app.js?v=7.0"></script>
+  <script src="/static/js/app.js?v=9.0"></script>
 </body>
 </html>

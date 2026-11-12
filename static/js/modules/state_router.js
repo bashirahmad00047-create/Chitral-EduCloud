@@ -433,6 +433,7 @@ function setGatewayMode(isGateway) {
   const gatewayControls = document.getElementById('headerGatewayControls');
   const tenantBadge = document.getElementById('headerTenantBadge');
   const mobileNav = document.getElementById('mobileBottomNav') || document.getElementById('bottomNav');
+  const screenLogin = document.getElementById('screen-login');
 
   if (isGateway) {
     if (sidebar) sidebar.classList.add('hidden');
@@ -466,6 +467,11 @@ function setGatewayMode(isGateway) {
       tenantBadge.classList.add('md:flex');
     }
     if (mobileNav) mobileNav.classList.remove('hidden');
+    // Ensure screen-login is strictly hidden and never occupies invisible height
+    if (screenLogin) {
+      screenLogin.classList.remove('active-screen');
+      screenLogin.classList.add('hidden');
+    }
   }
 }
 
@@ -821,14 +827,16 @@ function switchTab(rawScreenId) {
   }
   state.currentScreen = screenId;
 
-  // 1. Hide all screens
-  document.querySelectorAll('.screen-view').forEach(el => {
+  // 1. Strictly remove active-screen and add hidden to ALL screen views
+  document.querySelectorAll('.erp-screen-view, .screen-view').forEach(el => {
+    el.classList.remove('active-screen');
     el.classList.add('hidden');
   });
 
-  // 2. Show target screen
+  // 2. Show ONLY the active target screen
   const target = document.getElementById(screenId);
   if (target) {
+    target.classList.add('active-screen');
     target.classList.remove('hidden');
   } else {
     console.warn(`Target screen element with id #${screenId} not found in DOM`);
@@ -856,8 +864,9 @@ function switchTab(rawScreenId) {
   renderScreen(screenId);
   applyTranslations();
 
-  const mainContent = document.getElementById('mainContent');
-  if (mainContent) mainContent.scrollTop = 0;
+  // 6. Scroll main content area directly to top: 0
+  const mainContentArea = document.getElementById('main-content-area') || document.getElementById('mainContent');
+  if (mainContentArea) mainContentArea.scrollTop = 0;
 }
 
 // Alias navigateTo to switchTab for full backwards-compatibility

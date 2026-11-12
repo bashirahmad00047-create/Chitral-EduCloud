@@ -173,8 +173,72 @@ body {
   }
 }
 
-/* Smooth Tab transitions */
+/* ==================== ROCK-SOLID APP SHELL LAYOUT ==================== */
+.app-shell-header {
+  height: 64px !important;
+  min-height: 64px !important;
+  max-height: 64px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 24px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  z-index: 40 !important;
+}
+
+.app-shell-body {
+  display: flex !important;
+  flex-direction: row !important;
+  height: calc(100vh - 64px) !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  overflow: hidden !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+}
+
+.app-shell-sidebar {
+  width: 260px !important;
+  min-width: 260px !important;
+  max-width: 260px !important;
+  flex-shrink: 0 !important;
+  height: 100% !important;
+  overflow-y: auto !important;
+  border-right: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  box-sizing: border-box !important;
+}
+
+.dark .app-shell-sidebar {
+  border-right-color: #334155 !important;
+  background: #1e293b !important;
+}
+
+.app-shell-main {
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 24px !important;
+  background: #f8fafc !important;
+  box-sizing: border-box !important;
+}
+
+.dark .app-shell-main {
+  background: #0f172a !important;
+}
+
+/* ==================== STRICT SINGLE-SCREEN VISIBILITY ==================== */
+.erp-screen-view,
 .screen-view {
+  display: none !important;
+}
+
+.erp-screen-view.active-screen,
+.screen-view.active-screen {
+  display: block !important;
   animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 

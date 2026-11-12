@@ -1,0 +1,95 @@
+<!-- TOP NAVBAR: Fixed 64px / h-16 Single-Row Sleek Bar -->
+<header id="topNavbar" class="app-shell-header h-16 min-h-[64px] max-h-[64px] bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 select-none shadow-xs">
+  
+  <!-- LEFT: Brand Logo + Compact School Badge -->
+  <div class="flex items-center gap-3 shrink-0">
+    <!-- Mobile Sidebar Toggle Button -->
+    <button id="sidebarToggleBtn" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none lg:hidden" aria-label="Toggle Sidebar">
+      <i class="fa-solid fa-bars text-base"></i>
+    </button>
+
+    <!-- Brand Logo -->
+    <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchTab('screen-dashboard')">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white font-black shadow-sm">
+        <i class="fa-solid fa-graduation-cap text-sm"></i>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="font-extrabold text-base text-slate-900 dark:text-white tracking-tight" data-i18n="appName">Chitral EduCloud</span>
+        <span id="liveDatabaseBadge" class="hidden sm:inline-flex text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> LIVE
+        </span>
+      </div>
+    </div>
+
+    <!-- Compact School Badge (Locked Tenant) -->
+    <div id="headerTenantBadge" class="hidden md:flex items-center ml-2 border-l border-slate-200 dark:border-slate-700 pl-3">
+      <div class="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+        <span id="lockedSchoolName" class="font-bold text-slate-800 dark:text-slate-200 truncate max-w-[220px]">Chitral Model College & School</span>
+        <span id="lockedTenantId" class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300">chitral-model</span>
+      </div>
+      <!-- Hidden backward-compatible select -->
+      <select id="schoolTenantSelect" class="hidden" aria-hidden="true"></select>
+    </div>
+  </div>
+
+  <!-- RIGHT: Compact Controls -->
+  <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+    <!-- Authenticated ERP Controls Container -->
+    <div id="headerAuthenticatedControls" class="flex items-center gap-2 sm:gap-3">
+      
+      <!-- Quick Search Trigger (Ctrl+K) -->
+      <button type="button" onclick="openCommandPalette()" class="hidden xl:flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/60 text-slate-500 dark:text-slate-300 text-xs transition" title="Press Ctrl + K">
+        <i class="fa-solid fa-magnifying-glass text-emerald-600 text-[11px]"></i>
+        <span class="text-[11px]">Search...</span>
+        <kbd class="font-mono text-[9px] bg-white dark:bg-slate-800 px-1 py-0.2 rounded border border-slate-300 dark:border-slate-600">Ctrl K</kbd>
+      </button>
+
+      <!-- Compact Role Selector Pills -->
+      <div class="flex items-center bg-slate-100 dark:bg-slate-700/70 p-0.5 rounded-lg border border-slate-200 dark:border-slate-600 text-xs font-semibold">
+        <button id="roleBtnAdmin" onclick="setRole('admin')" class="px-2 py-1 rounded-md transition active-role-pill bg-white dark:bg-emerald-600 text-emerald-700 dark:text-white shadow-2xs font-bold text-[11px]">
+          Admin
+        </button>
+        <button id="roleBtnTeacher" onclick="setRole('teacher')" class="px-2 py-1 rounded-md transition text-slate-600 dark:text-slate-300 hover:text-emerald-600 font-semibold text-[11px]">
+          Teacher
+        </button>
+        <button id="roleBtnParent" onclick="setRole('parent')" class="px-2 py-1 rounded-md transition text-slate-600 dark:text-slate-300 hover:text-emerald-600 font-semibold text-[11px]">
+          Parent
+        </button>
+      </div>
+
+      <!-- Bilingual Language Toggle Button -->
+      <button id="langToggleBtn" onclick="toggleLanguage()" class="flex items-center gap-1 px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-700 transition" title="Toggle English / اردو">
+        <i class="fa-solid fa-language text-xs"></i>
+        <span id="langLabel">اردو</span>
+      </button>
+
+      <!-- Dark/Light Mode Toggle -->
+      <button id="themeToggleBtn" onclick="toggleTheme()" class="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs" title="Toggle Dark/Light Mode">
+        <i id="themeIcon" class="fa-solid fa-moon"></i>
+      </button>
+
+      <!-- Compact User Name & Avatar -->
+      <div class="flex items-center gap-1.5 pl-2 border-l border-slate-200 dark:border-slate-700 cursor-pointer" onclick="switchTab('screen-settings')">
+        <div class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]">
+          <span id="userAvatarText">AD</span>
+        </div>
+        <span id="userNameText" class="hidden lg:inline text-xs font-bold text-slate-800 dark:text-slate-200">Admin Rehmat</span>
+        <span id="userRoleText" class="hidden">Principal Desk</span>
+      </div>
+
+      <!-- Sleek Compact Logout Button -->
+      <button onclick="handleUserLogout()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-bold transition" title="Sign Out / Switch School Account">
+        <i class="fa-solid fa-power-off text-rose-600 text-[11px]"></i>
+        <span class="hidden sm:inline">Logout / Switch Account</span>
+      </button>
+    </div>
+
+    <!-- Unauthenticated Gateway Controls -->
+    <div id="headerGatewayControls" class="hidden items-center gap-2">
+      <button onclick="handleQuickDemoAccess()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-sm transition">
+        <i class="fa-solid fa-bolt"></i> <span>Instant Demo</span>
+      </button>
+    </div>
+  </div>
+</header>
