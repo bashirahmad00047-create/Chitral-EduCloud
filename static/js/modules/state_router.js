@@ -432,7 +432,7 @@ function setGatewayMode(isGateway) {
   const authControls = document.getElementById('headerAuthenticatedControls');
   const gatewayControls = document.getElementById('headerGatewayControls');
   const tenantBadge = document.getElementById('headerTenantBadge');
-  const mobileNav = document.getElementById('mobileBottomNav');
+  const mobileNav = document.getElementById('mobileBottomNav') || document.getElementById('bottomNav');
 
   if (isGateway) {
     if (sidebar) sidebar.classList.add('hidden');
